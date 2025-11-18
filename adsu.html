@@ -6,89 +6,143 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       max-width: 900px;
       margin: 2rem auto;
-      background: #f0f8ff;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background: #f9fafb;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      color: #111827;
     }
     h1 {
       text-align: center;
-      color: #5a2a83;
+      color: #4f46e5;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
     }
-    section {
-      margin-bottom: 2rem;
+    #filtros {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
     }
     label {
-      display: inline-block;
-      margin-right: 1rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+      white-space: nowrap;
     }
     select, input[type="text"] {
-      padding: 0.4rem;
-      margin-right: 1rem;
-      border-radius: 5px;
-      border: 1px solid #999;
-      min-width: 150px;
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      width: 180px;
+      transition: border-color 0.3s ease;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #4338ca;
+      box-shadow: 0 0 5px rgba(67,56,202,0.4);
     }
     button {
-      padding: 0.5rem 1.2rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 5px;
-      background-color: #5a2a83;
+      padding: 0.6rem 1.5rem;
+      background-color: #4338ca;
       color: white;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #4a1f6b;
+      background-color: #3730a3;
+    }
+    #estadisticas {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #444;
+      text-align: center;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.04);
     }
     th, td {
-      padding: 0.4rem 0.6rem;
-      border: 1px solid #ccc;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #e5e7eb;
       text-align: left;
+      font-size: 0.95rem;
     }
     th {
-      background-color: #5a2a83;
+      background-color: #4338ca;
       color: white;
+      font-weight: 700;
+      user-select: none;
     }
     td[contenteditable="true"] {
-      background-color: #fff9e6;
+      background-color: #f3f4f6;
       cursor: text;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    td[contenteditable="true"]:focus {
+      background-color: #e0e7ff;
+      outline: none;
+    }
+    #mensaje {
+      margin-top: 1rem;
+      font-weight: 700;
+      color: #16a34a;
+      text-align: center;
     }
   </style>
 </head>
 <body>
+
   <h1>Administrador: Gestión y Filtros</h1>
 
   <section id="filtros">
-    <label for="filtro-local">Filtrar por Local:</label>
+    <label for="filtro-local">Local:</label>
     <select id="filtro-local">
       <option value="">Todos</option>
     </select>
 
-    <label for="filtro-institucion">Filtrar por Institución:</label>
+    <label for="filtro-institucion">Institución Educativa:</label>
     <select id="filtro-institucion" disabled>
-      <option value="">Todos</option>
+      <option value="">Todas</option>
     </select>
 
-    <label for="busqueda-alumno">Buscar Alumno:</label>
-    <input type="text" id="busqueda-alumno" placeholder="Nombre o apellido" />
+    <label for="busqueda-alumno">Buscar alumno:</label>
+    <input type="text" id="busqueda-alumno" placeholder="Nombre o apellido" style="width: 250px;">
 
     <button id="btn-filtrar">Filtrar</button>
     <button id="btn-imprimir" style="margin-left: 1rem;">Imprimir PDF</button>
   </section>
 
+  <section id="estadisticas">
+    <span id="cantidad-alumnos">Alumnos: 0</span> &nbsp;|&nbsp;
+    <span id="cantidad-acompanantes">Acompañantes: 0</span> &nbsp;|&nbsp;
+    <span id="cantidad-locales">Locales: 0</span> &nbsp;|&nbsp;
+    <span id="cantidad-instituciones">Instituciones: 0</span>
+  </section>
+
   <section id="tabla-resultados">
-    <table id="tabla-datos">
+    <table id="tabla-datos" aria-label="Tabla de datos">
       <thead>
         <tr>
           <th>Local</th>
@@ -102,9 +156,11 @@
     </table>
   </section>
 
+  <div id="mensaje"></div>
+
 <script>
   const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nt...';
 
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -115,10 +171,21 @@
   const btnFiltrar = document.getElementById('btn-filtrar');
   const btnImprimir = document.getElementById('btn-imprimir');
   const tablaCuerpo = document.querySelector('#tabla-datos tbody');
+  const mensaje = document.getElementById('mensaje');
+
+  const cantidadAlumnosSpan = document.getElementById('cantidad-alumnos');
+  const cantidadAcompanantesSpan = document.getElementById('cantidad-acompanantes');
+  const cantidadLocalesSpan = document.getElementById('cantidad-locales');
+  const cantidadInstitucionesSpan = document.getElementById('cantidad-instituciones');
+
+  let datosGlobales = [];
 
   async function cargarLocales() {
     const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
-    if (error) return alert('Error cargando locales');
+    if (error) {
+      alert('Error cargando locales');
+      return;
+    }
     filtroLocal.innerHTML = '<option value="">Todos</option>';
     data.forEach(local => {
       filtroLocal.innerHTML += `<option value="${local.id}">${local.nombre}</option>`;
@@ -130,7 +197,8 @@
   });
 
   async function cargarInstituciones(localId) {
-    filtroInstitucion.innerHTML = '<option value="">Todos</option>';
+    filtroInstitucion.innerHTML = '<option value="">Todas</option>';
+
     if (!localId) {
       filtroInstitucion.disabled = true;
       return;
@@ -140,7 +208,10 @@
       .select('id, nombre')
       .eq('local_id', localId)
       .order('nombre');
-    if (error) return alert('Error cargando instituciones');
+    if (error) {
+      alert('Error cargando instituciones');
+      return;
+    }
     data.forEach(inst => {
       filtroInstitucion.innerHTML += `<option value="${inst.id}">${inst.nombre}</option>`;
     });
@@ -148,42 +219,140 @@
 
   async function filtrarDatos() {
     tablaCuerpo.innerHTML = '';
+    mensaje.textContent = '';
+
+    // Construcción dinámica de filtro
     let query = supabase
       .from('alumnos')
-      .select(`id, nombre, apellido, institucion_id, institucion:instituciones_educativas(nombre, local_id), local:instituciones_educativas!instituciones_educativas_local_id_fkey.locales(nombre), acompanantes(nome:acompanantes.nombre, ape:acompanantes.apellido)`);
+      .select(`
+        id, nombre, apellido, institucion_id,
+        institucion:instituciones_educativas(id, nombre, local_id),
+        local:instituciones_educativas!instituciones_educativas_local_id_fkey.locales(id, nombre),
+        acompanantes(id, nombre, apellido),
+        mesas:instituciones_educativas!instituciones_educativas_local_id_fkey.mesas(id, nombre)
+      `);
 
-    // Filtro por local
+    // Aplica sólo filtros que tengan valor
+    const filtros = [];
     if (filtroLocal.value) {
-      query = query.eq('institucion.local_id', filtroLocal.value);
+      filtros.push({ tipo: 'eq', campo: 'institucion.local_id', valor: filtroLocal.value });
     }
-    // Filtro por institución
     if (filtroInstitucion.value) {
-      query = query.eq('institucion_id', filtroInstitucion.value);
+      filtros.push({ tipo: 'eq', campo: 'institucion_id', valor: filtroInstitucion.value });
     }
-    // Filtrado por nombre o apellido alumno
-    const busqueda = busquedaAlumno.value.trim().toLowerCase();
-    if (busqueda) {
-      query = query.ilike('nombre', `%${busqueda}%`).or(`apellido.ilike.%${busqueda}%`);
+    if (busquedaAlumno.value.trim()) {
+      filtros.push({ tipo: 'ilike', campo: 'nombre', valor: `%${busquedaAlumno.value.trim()}%` });
+      filtros.push({ tipo: 'or', valor: `apellido.ilike.%${busquedaAlumno.value.trim()}%` });
+    }
+
+    // Aplicar filtros a la consulta
+    for (let filtro of filtros) {
+      if (filtro.tipo === 'eq') {
+        query = query.eq(filtro.campo, filtro.valor);
+      } else if (filtro.tipo === 'ilike') {
+        query = query.ilike(filtro.campo, filtro.valor);
+      } else if (filtro.tipo === 'or') {
+        query = query.or(filtro.valor);
+      }
     }
 
     const { data, error } = await query;
+    if (error) {
+      mensaje.textContent = 'Error al filtrar datos: ' + error.message;
+      return;
+    }
+    datosGlobales = data || [];
 
-    if (error) return alert('Error al filtrar datos');
+    // Estadísticas
+    const totalAlumnos = datosGlobales.length;
+    const totalAcompanantes = datosGlobales.reduce((acc, a) => acc + (a.acompanantes?.length || 0), 0);
+    const localIds = [...new Set(datosGlobales.map(d => d.local?.id).filter(Boolean))];
+    const institucionIds = [...new Set(datosGlobales.map(d => d.institucion?.id).filter(Boolean))];
 
-    data.forEach(alumno => {
-      const acompanantesText = alumno.acompanantes && alumno.acompanantes.length > 0 ? alumno.acompanantes.map(a => `${a.nome} ${a.ape}`).join(', ') : 'Sin acompañantes';
+    cantidadAlumnosSpan.textContent = `Alumnos: ${totalAlumnos}`;
+    cantidadAcompanantesSpan.textContent = `Acompañantes: ${totalAcompanantes}`;
+    cantidadLocalesSpan.textContent = `Locales: ${localIds.length}`;
+    cantidadInstitucionesSpan.textContent = `Instituciones: ${institucionIds.length}`;
+
+    datosGlobales.forEach(alumno => {
+      const acompanantesText = alumno.acompanantes && alumno.acompanantes.length > 0 ?
+        alumno.acompanantes.map(a => `${a.nombre} ${a.apellido}`).join(', ') : 'Sin acompañantes';
+      const mesasText = alumno.mesas && alumno.mesas.length > 0 ? 
+        alumno.mesas.map(m => m.nombre).join(', ') : '--';
+
       const fila = document.createElement('tr');
 
       fila.innerHTML = `
-        <td contenteditable="true" data-tipo="local">${alumno.local?.nombre || ''}</td>
-        <td contenteditable="true" data-tipo="institucion">${alumno.institucion?.nombre || ''}</td>
-        <td contenteditable="true" data-tipo="alumno">${alumno.nombre} ${alumno.apellido}</td>
-        <td contenteditable="true" data-tipo="acompanantes">${acompanantesText}</td>
-        <td contenteditable="true" data-tipo="mesas">--</td>
+        <td contenteditable="true" data-tipo="local" data-id="${alumno.local?.id || ''}" data-row="${alumno.id}">${alumno.local?.nombre || ''}</td>
+        <td contenteditable="true" data-tipo="institucion" data-id="${alumno.institucion?.id || ''}" data-row="${alumno.id}">${alumno.institucion?.nombre || ''}</td>
+        <td contenteditable="true" data-tipo="alumno" data-row="${alumno.id}">${alumno.nombre} ${alumno.apellido}</td>
+        <td contenteditable="true" data-tipo="acompanantes" data-row="${alumno.id}">${acompanantesText}</td>
+        <td contenteditable="true" data-tipo="mesas" data-row="${alumno.id}">${mesasText}</td>
       `;
 
       tablaCuerpo.appendChild(fila);
     });
+
+    agregarEventosEdicion();
+  }
+
+  function agregarEventosEdicion() {
+    Array.from(tablaCuerpo.querySelectorAll('td[contenteditable="true"]')).forEach(td => {
+      td.removeEventListener('blur', editarCelda);
+      td.addEventListener('blur', editarCelda);
+    });
+  }
+
+  async function editarCelda(e) {
+    const td = e.target;
+    const tipo = td.dataset.tipo;
+    const rowId = td.dataset.row;
+
+    mensaje.textContent = '';
+    if (!rowId) {
+      mensaje.textContent = 'No se pudo identificar el campo para editar.';
+      return;
+    }
+
+    let nuevo = td.textContent.trim();
+
+    try {
+      if (tipo === 'local') {
+        const localId = td.dataset.id;
+        if (localId) {
+          await supabase.from('locales').update({ nombre: nuevo }).eq('id', localId);
+          mensaje.textContent = 'Local actualizado.';
+        }
+      }
+      else if (tipo === 'institucion') {
+        const institucionId = td.dataset.id;
+        if (institucionId) {
+          await supabase.from('instituciones_educativas').update({ nombre: nuevo }).eq('id', institucionId);
+          mensaje.textContent = 'Institución actualizada.';
+        }
+      }
+      else if (tipo === 'alumno') {
+        const partes = nuevo.split(' ');
+        const nombre = partes.slice(0, -1).join(' ');
+        const apellido = partes.slice(-1).join(' ');
+        await supabase.from('alumnos').update({ nombre, apellido }).eq('id', rowId);
+        mensaje.textContent = 'Alumno actualizado.';
+      }
+      else if (tipo === 'acompanantes') {
+        mensaje.textContent = 'Edita los acompañantes en la pantalla de alumno.';
+      }
+      else if (tipo === 'mesas') {
+        const mesa = nuevo.split(',')[0].trim();
+        const institucionRow = datosGlobales.find(a => a.id == rowId)?.institucion_id;
+        if (mesa && institucionRow) {
+          await supabase.from('mesas').insert([{ nombre: mesa, local_id: filtroLocal.value || null }]);
+          mensaje.textContent = 'Mesa actualizada.';
+        }
+      }
+      await filtrarDatos();
+    } catch (error) {
+      mensaje.textContent = 'Error al editar: ' + error.message;
+    }
   }
 
   btnFiltrar.addEventListener('click', filtrarDatos);

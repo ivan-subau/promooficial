@@ -6,63 +6,106 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       max-width: 700px;
       margin: 2rem auto;
-      background: #f9f9f9;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      color: #333333;
     }
     h1, h2 {
       text-align: center;
-      color: #0275d8;
+      color: #1e3a8a;
+      margin-bottom: 1rem;
     }
     label {
       display: block;
-      margin-top: 1rem;
-      font-weight: bold;
+      font-weight: 600;
+      margin-top: 1.2rem;
+      margin-bottom: 0.4rem;
+      color: #1e40af;
     }
     select, input {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.25rem;
-      box-sizing: border-box;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: 0.55rem 0.7rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1.5px solid #bbb;
+      transition: border-color 0.3s ease;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 5px rgba(59,130,246,0.5);
     }
     button {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      background-color: #0275d8;
+      margin-top: 1.8rem;
+      padding: 0.65rem 1.5rem;
+      background-color: #2563eb;
       color: white;
+      font-weight: 700;
       border: none;
-      border-radius: 4px;
-      font-weight: bold;
+      border-radius: 8px;
       cursor: pointer;
-      display: inline-block;
+      font-size: 1.1rem;
+      width: 100%;
+      transition: background-color 0.3s ease;
     }
     button:hover {
-      background-color: #025aa5;
+      background-color: #1d4ed8;
+    }
+    .alumno-block {
+      border: 1px solid #cbd5e1;
+      padding: 1rem 1.2rem;
+      margin-top: 1.8rem;
+      border-radius: 8px;
+      background-color: #f9fafb;
+    }
+    .acompanantes-container {
+      margin-top: 1rem;
+      background: #eef2ff;
+      padding: 0.7rem 1rem;
+      border-radius: 6px;
+    }
+    .acompanante-item {
+      margin-bottom: 0.75rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    .acompanante-item label {
+      flex-shrink: 0;
+      width: 120px;
+      font-weight: 600;
+      color: #4338ca;
+    }
+    .acompanante-item input {
+      flex-grow: 1;
+    }
+    .btn-agregar-acomp {
+      margin-top: 0.6rem;
+      background-color: #3730a3;
+      padding: 0.35rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .btn-agregar-acomp:hover {
+      background-color: #312e81;
     }
     #message {
-      margin-top: 1rem;
-      font-weight: bold;
-      color: green;
+      margin-top: 1.8rem;
+      font-weight: 700;
       text-align: center;
+      color: #059669;
     }
-    .hidden {
-      display: none;
-    }
-    table {
-      width: 100%;
-      margin-top: 1rem;
-      border-collapse: collapse;
-    }
-    th, td {
-      text-align: left;
-      padding: 5px;
-      border-bottom: 1px solid #ccc;
+    #lista-impresion {
+      margin-top: 2rem;
+      border-top: 2px solid #e0e7ff;
+      padding-top: 1rem;
+      font-size: 1.05rem;
+      color: #1e293b;
     }
   </style>
 </head>
@@ -78,7 +121,7 @@
     </select>
 
     <label for="institucion-input">Institución Educativa (selecciona o ingresa):</label>
-    <select id="institucion-select" style="display:none"></select>
+    <select id="institucion-select" style="display:none;"></select>
     <input type="text" id="institucion-input" placeholder="Escribe el nombre de la institución" />
 
     <label for="numero-alumnos">Número de alumnos:</label>
@@ -94,9 +137,8 @@
     <div id="alumnos-container"></div>
 
     <button id="btn-guardar">Guardar y Mostrar Lista</button>
-    <button id="btn-regresar" style="margin-left: 1rem;">Regresar</button>
 
-    <div id="lista-impresion" style="margin-top: 20px;"></div>
+    <div id="lista-impresion"></div>
   </div>
 
   <div id="message"></div>
@@ -120,7 +162,6 @@
 
   const alumnosContainer = document.getElementById('alumnos-container');
   const btnGuardar = document.getElementById('btn-guardar');
-  const btnRegresar = document.getElementById('btn-regresar');
   const listaImpresion = document.getElementById('lista-impresion');
 
   let numeroAlumnos = 0;
@@ -192,23 +233,18 @@
       message.textContent = 'Selecciona un local';
       return;
     }
-
     if (!institucionId && !institucionNombre) {
       message.textContent = 'Selecciona o ingresa una institución educativa';
       return;
     }
-
     if (!numeroAlumnos || numeroAlumnos < 1) {
       message.textContent = 'Ingresa un número válido de alumnos';
       return;
     }
-
     message.textContent = '';
 
-    // Guardar o seleccionar institución educativa
     (async () => {
       if (!institucionId) {
-        // Insertar nueva institución ligada al local seleccionado
         const { data, error } = await supabase.from('instituciones_educativas')
           .insert([{ nombre: institucionNombre, local_id: localId }])
           .select()
@@ -235,9 +271,7 @@
 
     alumnosDatos.forEach((alumno, idx) => {
       const alumnoDiv = document.createElement('div');
-      alumnoDiv.style.border = '1px solid #ccc';
-      alumnoDiv.style.padding = '10px';
-      alumnoDiv.style.marginBottom = '10px';
+      alumnoDiv.classList.add('alumno-block');
 
       alumnoDiv.innerHTML = `
         <h3>Alumno ${idx + 1}</h3>
@@ -247,7 +281,7 @@
         <input type="text" class="alumno-apellido" data-idx="${idx}" />
         <div class="acompanantes-container" data-idx="${idx}">
           <h4>Acompañantes</h4>
-          <button class="btn-agregar-acomp" data-idx="${idx}" style="margin-bottom:10px;">Agregar Acompañante</button>
+          <button class="btn-agregar-acomp" data-idx="${idx}">Agregar Acompañante</button>
           <div class="lista-acompanantes"></div>
         </div>
       `;
@@ -255,7 +289,6 @@
       alumnosContainer.appendChild(alumnoDiv);
     });
 
-    // Agregar eventos para inputs alumnos
     alumnosContainer.querySelectorAll('.alumno-nombre').forEach(input => {
       input.addEventListener('input', e => {
         const i = e.target.dataset.idx;
@@ -268,8 +301,6 @@
         alumnosDatos[i].apellido = e.target.value;
       });
     });
-
-    // Agregar eventos para añadir acompañantes
     alumnosContainer.querySelectorAll('.btn-agregar-acomp').forEach(btn => {
       btn.addEventListener('click', e => {
         const i = btn.dataset.idx;
@@ -281,24 +312,22 @@
   function agregarAcompanante(alumnoIdx) {
     const container = alumnosContainer.querySelector(`.acompanantes-container[data-idx="${alumnoIdx}"]`);
     if (!container) return;
-
     const lista = container.querySelector('.lista-acompanantes');
     const acompDiv = document.createElement('div');
-    acompDiv.style.marginBottom = '5px';
+    acompDiv.classList.add('acompanante-item');
 
     const acompIdx = alumnosDatos[alumnoIdx].acompanantes.length;
 
     acompDiv.innerHTML = `
-      <label>Nombre acompañante:</label>
+      <label>Nombre:</label>
       <input type="text" class="acomp-nombre" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
-      <label>Apellido acompañante:</label>
+      <label>Apellido:</label>
       <input type="text" class="acomp-apellido" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
       <button class="btn-eliminar-acomp" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}">Eliminar</button>
     `;
 
     lista.appendChild(acompDiv);
 
-    // Actualizar datos acompañantes al escribir
     acompDiv.querySelector('.acomp-nombre').addEventListener('input', e => {
       alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
       alumnosDatos[alumnoIdx].acompanantes[acompIdx].nombre = e.target.value;
@@ -307,12 +336,9 @@
       alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
       alumnosDatos[alumnoIdx].acompanantes[acompIdx].apellido = e.target.value;
     });
-
-    // Eliminar acompañante
     acompDiv.querySelector('.btn-eliminar-acomp').addEventListener('click', e => {
       alumnosDatos[alumnoIdx].acompanantes.splice(acompIdx, 1);
       lista.removeChild(acompDiv);
-      // Reajustar los data-acomp-idx
       Array.from(lista.children).forEach((child, idx) => {
         child.querySelector('.acomp-nombre').dataset.acompIdx = idx;
         child.querySelector('.acomp-apellido').dataset.acompIdx = idx;
@@ -321,23 +347,13 @@
     });
   }
 
-  btnRegresar.addEventListener('click', () => {
-    pantalla2.classList.add('hidden');
-    pantalla1.classList.remove('hidden');
-    message.textContent = '';
-    alumnosContainer.innerHTML = '';
-    listaImpresion.innerHTML = '';
-  });
-
   btnGuardar.addEventListener('click', async () => {
-    // Validar que todos los alumnos tengan nombre y apellido
     for (let i = 0; i < alumnosDatos.length; i++) {
       const a = alumnosDatos[i];
       if (!a.nombre.trim() || !a.apellido.trim()) {
         message.textContent = `El alumno ${i+1} debe tener nombre y apellido`;
         return;
       }
-      // Validar acompañantes si tienen datos (opcional)
       for (let j = 0; j < a.acompanantes.length; j++) {
         const ac = a.acompanantes[j];
         if (!ac?.nombre?.trim() || !ac?.apellido?.trim()) {
@@ -348,13 +364,10 @@
     }
 
     message.textContent = 'Guardando datos...';
-
     try {
-      // Crear registro comité
       const localId = localSelect.value;
       let institucionId = institucionSelect.value || null;
       if (!institucionId) {
-        // Si se escribió institución en el input (pantalla 1), se debe obtener id guardado en DB
         const { data: institucionesData } = await supabase.from('instituciones_educativas')
           .select('id')
           .eq('nombre', institucionInput.value.trim());
@@ -369,7 +382,6 @@
 
       const registroId = registro.id;
 
-      // Insertar alumnos y acompañantes, y relacionarlos con registro
       for (const alumno of alumnosDatos) {
         const { data: alumnoData, error: errorAlumno } = await supabase
           .from('alumnos')
@@ -411,9 +423,7 @@
     });
   }
 
-  // Inicialización
   cargarLocales();
-
 </script>
 </body>
 </html>
