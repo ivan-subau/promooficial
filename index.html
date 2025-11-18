@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Comité - Registro de Alumnos y Acompañantes</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #0275d8;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background-color: #0275d8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-block;
+    }
+    button:hover {
+      background-color: #025aa5;
+    }
+    #message {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: green;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Comité: Registro de Alumnos y Acompañantes</h1>
+
+  <!-- Pantalla 1 -->
+  <div id="pantalla1">
+    <h2>Paso 1: Selección y número de alumnos</h2>
+    <label for="local-select">Selecciona un Local:</label>
+    <select id="local-select">
+      <option value="">-- Selecciona Local --</option>
+    </select>
+
+    <label for="institucion-input">Institución Educativa (selecciona o ingresa):</label>
+    <select id="institucion-select" style="display:none"></select>
+    <input type="text" id="institucion-input" placeholder="Escribe el nombre de la institución" />
+
+    <label for="numero-alumnos">Número de alumnos:</label>
+    <input type="number" id="numero-alumnos" min="1" placeholder="Cantidad de alumnos" />
+
+    <button id="btn-siguiente">Siguiente</button>
+  </div>
+
+  <!-- Pantalla 2 -->
+  <div id="pantalla2" class="hidden">
+    <h2>Paso 2: Ingreso de Alumnos y Acompañantes</h2>
+
+    <div id="alumnos-container"></div>
+
+    <button id="btn-guardar">Guardar y Mostrar Lista</button>
+    <button id="btn-regresar" style="margin-left: 1rem;">Regresar</button>
+
+    <div id="lista-impresion" style="margin-top: 20px;"></div>
+  </div>
+
+  <div id="message"></div>
+
+<script>
+  const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nt...';
+
+  const { createClient } = window.supabase;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const pantalla1 = document.getElementById('pantalla1');
+  const pantalla2 = document.getElementById('pantalla2');
+  const message = document.getElementById('message');
+
+  const localSelect = document.getElementById('local-select');
+  const institucionSelect = document.getElementById('institucion-select');
+  const institucionInput = document.getElementById('institucion-input');
+  const numeroAlumnosInput = document.getElementById('numero-alumnos');
+  const btnSiguiente = document.getElementById('btn-siguiente');
+
+  const alumnosContainer = document.getElementById('alumnos-container');
+  const btnGuardar = document.getElementById('btn-guardar');
+  const btnRegresar = document.getElementById('btn-regresar');
+  const listaImpresion = document.getElementById('lista-impresion');
+
+  let numeroAlumnos = 0;
+  let alumnosDatos = [];
+
+  async function cargarLocales() {
+    const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
+    if (error) {
+      message.textContent = 'Error cargando locales';
+      return;
+    }
+    data.forEach(local => {
+      const option = document.createElement('option');
+      option.value = local.id;
+      option.textContent = local.nombre;
+      localSelect.appendChild(option);
+    });
+  }
+
+  async function cargarInstituciones(localId) {
+    institucionSelect.innerHTML = '';
+    institucionSelect.style.display = 'none';
+    institucionInput.style.display = 'block';
+    institucionInput.value = '';
+
+    if (!localId) return;
+
+    const { data, error } = await supabase.from('instituciones_educativas')
+      .select('id, nombre')
+      .eq('local_id', localId)
+      .order('nombre');
+
+    if (error) {
+      message.textContent = 'Error cargando instituciones';
+      return;
+    }
+    if (data.length > 0) {
+      institucionSelect.style.display = 'block';
+      institucionSelect.innerHTML = '<option value="">-- Selecciona Institución --</option>';
+      data.forEach(inst => {
+        const option = document.createElement('option');
+        option.value = inst.id;
+        option.textContent = inst.nombre;
+        institucionSelect.appendChild(option);
+      });
+      institucionInput.style.display = 'none';
+    }
+  }
+
+  localSelect.addEventListener('change', () => {
+    cargarInstituciones(localSelect.value);
+  });
+
+  institucionSelect.addEventListener('change', () => {
+    if (institucionSelect.value) {
+      institucionInput.style.display = 'none';
+    } else {
+      institucionInput.style.display = 'block';
+    }
+  });
+
+  btnSiguiente.addEventListener('click', () => {
+    const localId = localSelect.value;
+    let institucionId = institucionSelect.value;
+    const institucionNombre = institucionInput.value.trim();
+    numeroAlumnos = parseInt(numeroAlumnosInput.value);
+
+    if (!localId) {
+      message.textContent = 'Selecciona un local';
+      return;
+    }
+
+    if (!institucionId && !institucionNombre) {
+      message.textContent = 'Selecciona o ingresa una institución educativa';
+      return;
+    }
+
+    if (!numeroAlumnos || numeroAlumnos < 1) {
+      message.textContent = 'Ingresa un número válido de alumnos';
+      return;
+    }
+
+    message.textContent = '';
+
+    // Guardar o seleccionar institución educativa
+    (async () => {
+      if (!institucionId) {
+        // Insertar nueva institución ligada al local seleccionado
+        const { data, error } = await supabase.from('instituciones_educativas')
+          .insert([{ nombre: institucionNombre, local_id: localId }])
+          .select()
+          .single();
+        if (error) {
+          message.textContent = 'Error guardando institución';
+          return;
+        }
+        institucionId = data.id;
+      }
+      iniciarPantalla2(localId, institucionId, numeroAlumnos);
+    })();
+  });
+
+  function iniciarPantalla2(localId, institucionId, numAlumnos) {
+    pantalla1.classList.add('hidden');
+    pantalla2.classList.remove('hidden');
+    alumnosContainer.innerHTML = '';
+    alumnosDatos = [];
+
+    for (let i = 0; i < numAlumnos; i++) {
+      alumnosDatos.push({ nombre: '', apellido: '', acompanantes: [] });
+    }
+
+    alumnosDatos.forEach((alumno, idx) => {
+      const alumnoDiv = document.createElement('div');
+      alumnoDiv.style.border = '1px solid #ccc';
+      alumnoDiv.style.padding = '10px';
+      alumnoDiv.style.marginBottom = '10px';
+
+      alumnoDiv.innerHTML = `
+        <h3>Alumno ${idx + 1}</h3>
+        <label>Nombre:</label>
+        <input type="text" class="alumno-nombre" data-idx="${idx}" />
+        <label>Apellido:</label>
+        <input type="text" class="alumno-apellido" data-idx="${idx}" />
+        <div class="acompanantes-container" data-idx="${idx}">
+          <h4>Acompañantes</h4>
+          <button class="btn-agregar-acomp" data-idx="${idx}" style="margin-bottom:10px;">Agregar Acompañante</button>
+          <div class="lista-acompanantes"></div>
+        </div>
+      `;
+
+      alumnosContainer.appendChild(alumnoDiv);
+    });
+
+    // Agregar eventos para inputs alumnos
+    alumnosContainer.querySelectorAll('.alumno-nombre').forEach(input => {
+      input.addEventListener('input', e => {
+        const i = e.target.dataset.idx;
+        alumnosDatos[i].nombre = e.target.value;
+      });
+    });
+    alumnosContainer.querySelectorAll('.alumno-apellido').forEach(input => {
+      input.addEventListener('input', e => {
+        const i = e.target.dataset.idx;
+        alumnosDatos[i].apellido = e.target.value;
+      });
+    });
+
+    // Agregar eventos para añadir acompañantes
+    alumnosContainer.querySelectorAll('.btn-agregar-acomp').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const i = btn.dataset.idx;
+        agregarAcompanante(i);
+      });
+    });
+  }
+
+  function agregarAcompanante(alumnoIdx) {
+    const container = alumnosContainer.querySelector(`.acompanantes-container[data-idx="${alumnoIdx}"]`);
+    if (!container) return;
+
+    const lista = container.querySelector('.lista-acompanantes');
+    const acompDiv = document.createElement('div');
+    acompDiv.style.marginBottom = '5px';
+
+    const acompIdx = alumnosDatos[alumnoIdx].acompanantes.length;
+
+    acompDiv.innerHTML = `
+      <label>Nombre acompañante:</label>
+      <input type="text" class="acomp-nombre" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
+      <label>Apellido acompañante:</label>
+      <input type="text" class="acomp-apellido" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
+      <button class="btn-eliminar-acomp" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}">Eliminar</button>
+    `;
+
+    lista.appendChild(acompDiv);
+
+    // Actualizar datos acompañantes al escribir
+    acompDiv.querySelector('.acomp-nombre').addEventListener('input', e => {
+      alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
+      alumnosDatos[alumnoIdx].acompanantes[acompIdx].nombre = e.target.value;
+    });
+    acompDiv.querySelector('.acomp-apellido').addEventListener('input', e => {
+      alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
+      alumnosDatos[alumnoIdx].acompanantes[acompIdx].apellido = e.target.value;
+    });
+
+    // Eliminar acompañante
+    acompDiv.querySelector('.btn-eliminar-acomp').addEventListener('click', e => {
+      alumnosDatos[alumnoIdx].acompanantes.splice(acompIdx, 1);
+      lista.removeChild(acompDiv);
+      // Reajustar los data-acomp-idx
+      Array.from(lista.children).forEach((child, idx) => {
+        child.querySelector('.acomp-nombre').dataset.acompIdx = idx;
+        child.querySelector('.acomp-apellido').dataset.acompIdx = idx;
+        child.querySelector('.btn-eliminar-acomp').dataset.acompIdx = idx;
+      });
+    });
+  }
+
+  btnRegresar.addEventListener('click', () => {
+    pantalla2.classList.add('hidden');
+    pantalla1.classList.remove('hidden');
+    message.textContent = '';
+    alumnosContainer.innerHTML = '';
+    listaImpresion.innerHTML = '';
+  });
+
+  btnGuardar.addEventListener('click', async () => {
+    // Validar que todos los alumnos tengan nombre y apellido
+    for (let i = 0; i < alumnosDatos.length; i++) {
+      const a = alumnosDatos[i];
+      if (!a.nombre.trim() || !a.apellido.trim()) {
+        message.textContent = `El alumno ${i+1} debe tener nombre y apellido`;
+        return;
+      }
+      // Validar acompañantes si tienen datos (opcional)
+      for (let j = 0; j < a.acompanantes.length; j++) {
+        const ac = a.acompanantes[j];
+        if (!ac?.nombre?.trim() || !ac?.apellido?.trim()) {
+          message.textContent = `El acompañante ${j+1} del alumno ${i+1} debe tener nombre y apellido`;
+          return;
+        }
+      }
+    }
+
+    message.textContent = 'Guardando datos...';
+
+    try {
+      // Crear registro comité
+      const localId = localSelect.value;
+      let institucionId = institucionSelect.value || null;
+      if (!institucionId) {
+        // Si se escribió institución en el input (pantalla 1), se debe obtener id guardado en DB
+        const { data: institucionesData } = await supabase.from('instituciones_educativas')
+          .select('id')
+          .eq('nombre', institucionInput.value.trim());
+        institucionId = institucionesData?.[0]?.id || null;
+      }
+      const { data: registro, error: errorRegistro } = await supabase
+        .from('registros_comite')
+        .insert([{ local_id: localId, institucion_id: institucionId, numero_alumnos: numeroAlumnos }])
+        .select()
+        .single();
+      if (errorRegistro) throw errorRegistro;
+
+      const registroId = registro.id;
+
+      // Insertar alumnos y acompañantes, y relacionarlos con registro
+      for (const alumno of alumnosDatos) {
+        const { data: alumnoData, error: errorAlumno } = await supabase
+          .from('alumnos')
+          .insert([{ nombre: alumno.nombre, apellido: alumno.apellido, institucion_id: institucionId }])
+          .select()
+          .single();
+        if (errorAlumno) throw errorAlumno;
+
+        const alumnoId = alumnoData.id;
+
+        await supabase.from('registro_alumnos').insert([{ registro_comite_id: registroId, alumno_id: alumnoId }]);
+
+        for (const acomp of alumno.acompanantes) {
+          await supabase.from('acompanantes').insert([
+            { nombre: acomp.nombre, apellido: acomp.apellido, alumno_id: alumnoId }
+          ]);
+        }
+      }
+
+      message.textContent = 'Datos guardados correctamente.';
+
+      mostrarListaImpresion();
+
+    } catch (error) {
+      message.textContent = 'Error guardando datos: ' + error.message;
+    }
+  });
+
+  function mostrarListaImpresion() {
+    listaImpresion.innerHTML = '';
+
+    alumnosDatos.forEach((alumno, idx) => {
+      const div = document.createElement('div');
+      const acompText = alumno.acompanantes.map(ac => `${ac.nombre} ${ac.apellido}`).join(', ') || 'Sin acompañantes';
+
+      div.innerHTML = `<strong>Alumno ${idx+1}:</strong> ${alumno.nombre} ${alumno.apellido} <br/>
+                       <em>Acompañantes:</em> ${acompText}<br/><hr/>`;
+      listaImpresion.appendChild(div);
+    });
+  }
+
+  // Inicialización
+  cargarLocales();
+
+</script>
+</body>
+</html>

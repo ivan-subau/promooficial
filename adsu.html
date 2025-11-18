@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Administrador - Gestión y Filtros</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #f0f8ff;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #5a2a83;
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    label {
+      display: inline-block;
+      margin-right: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    select, input[type="text"] {
+      padding: 0.4rem;
+      margin-right: 1rem;
+      border-radius: 5px;
+      border: 1px solid #999;
+      min-width: 150px;
+    }
+    button {
+      padding: 0.5rem 1.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      background-color: #5a2a83;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #4a1f6b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #5a2a83;
+      color: white;
+    }
+    td[contenteditable="true"] {
+      background-color: #fff9e6;
+      cursor: text;
+    }
+  </style>
+</head>
+<body>
+  <h1>Administrador: Gestión y Filtros</h1>
+
+  <section id="filtros">
+    <label for="filtro-local">Filtrar por Local:</label>
+    <select id="filtro-local">
+      <option value="">Todos</option>
+    </select>
+
+    <label for="filtro-institucion">Filtrar por Institución:</label>
+    <select id="filtro-institucion" disabled>
+      <option value="">Todos</option>
+    </select>
+
+    <label for="busqueda-alumno">Buscar Alumno:</label>
+    <input type="text" id="busqueda-alumno" placeholder="Nombre o apellido" />
+
+    <button id="btn-filtrar">Filtrar</button>
+    <button id="btn-imprimir" style="margin-left: 1rem;">Imprimir PDF</button>
+  </section>
+
+  <section id="tabla-resultados">
+    <table id="tabla-datos">
+      <thead>
+        <tr>
+          <th>Local</th>
+          <th>Institución</th>
+          <th>Alumno</th>
+          <th>Acompañantes</th>
+          <th>Mesas</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+<script>
+  const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nt...';
+
+  const { createClient } = window.supabase;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const filtroLocal = document.getElementById('filtro-local');
+  const filtroInstitucion = document.getElementById('filtro-institucion');
+  const busquedaAlumno = document.getElementById('busqueda-alumno');
+  const btnFiltrar = document.getElementById('btn-filtrar');
+  const btnImprimir = document.getElementById('btn-imprimir');
+  const tablaCuerpo = document.querySelector('#tabla-datos tbody');
+
+  async function cargarLocales() {
+    const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
+    if (error) return alert('Error cargando locales');
+    filtroLocal.innerHTML = '<option value="">Todos</option>';
+    data.forEach(local => {
+      filtroLocal.innerHTML += `<option value="${local.id}">${local.nombre}</option>`;
+    });
+  }
+
+  filtroLocal.addEventListener('change', () => {
+    cargarInstituciones(filtroLocal.value);
+  });
+
+  async function cargarInstituciones(localId) {
+    filtroInstitucion.innerHTML = '<option value="">Todos</option>';
+    if (!localId) {
+      filtroInstitucion.disabled = true;
+      return;
+    }
+    filtroInstitucion.disabled = false;
+    const { data, error } = await supabase.from('instituciones_educativas')
+      .select('id, nombre')
+      .eq('local_id', localId)
+      .order('nombre');
+    if (error) return alert('Error cargando instituciones');
+    data.forEach(inst => {
+      filtroInstitucion.innerHTML += `<option value="${inst.id}">${inst.nombre}</option>`;
+    });
+  }
+
+  async function filtrarDatos() {
+    tablaCuerpo.innerHTML = '';
+    let query = supabase
+      .from('alumnos')
+      .select(`id, nombre, apellido, institucion_id, institucion:instituciones_educativas(nombre, local_id), local:instituciones_educativas!instituciones_educativas_local_id_fkey.locales(nombre), acompanantes(nome:acompanantes.nombre, ape:acompanantes.apellido)`);
+
+    // Filtro por local
+    if (filtroLocal.value) {
+      query = query.eq('institucion.local_id', filtroLocal.value);
+    }
+    // Filtro por institución
+    if (filtroInstitucion.value) {
+      query = query.eq('institucion_id', filtroInstitucion.value);
+    }
+    // Filtrado por nombre o apellido alumno
+    const busqueda = busquedaAlumno.value.trim().toLowerCase();
+    if (busqueda) {
+      query = query.ilike('nombre', `%${busqueda}%`).or(`apellido.ilike.%${busqueda}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) return alert('Error al filtrar datos');
+
+    data.forEach(alumno => {
+      const acompanantesText = alumno.acompanantes && alumno.acompanantes.length > 0 ? alumno.acompanantes.map(a => `${a.nome} ${a.ape}`).join(', ') : 'Sin acompañantes';
+      const fila = document.createElement('tr');
+
+      fila.innerHTML = `
+        <td contenteditable="true" data-tipo="local">${alumno.local?.nombre || ''}</td>
+        <td contenteditable="true" data-tipo="institucion">${alumno.institucion?.nombre || ''}</td>
+        <td contenteditable="true" data-tipo="alumno">${alumno.nombre} ${alumno.apellido}</td>
+        <td contenteditable="true" data-tipo="acompanantes">${acompanantesText}</td>
+        <td contenteditable="true" data-tipo="mesas">--</td>
+      `;
+
+      tablaCuerpo.appendChild(fila);
+    });
+  }
+
+  btnFiltrar.addEventListener('click', filtrarDatos);
+
+  btnImprimir.addEventListener('click', () => {
+    const contenido = document.getElementById('tabla-resultados').innerHTML;
+    const ventanaImpresion = window.open('', '', 'width=900,height=700');
+    ventanaImpresion.document.write('<html><head><title>Imprimir lista</title></head><body>');
+    ventanaImpresion.document.write(contenido);
+    ventanaImpresion.document.write('</body></html>');
+    ventanaImpresion.document.close();
+    ventanaImpresion.print();
+  });
+
+  cargarLocales();
+</script>
+</body>
+</html>
