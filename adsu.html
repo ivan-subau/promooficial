@@ -15,11 +15,49 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.08);
       color: #111827;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
       color: #4f46e5;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       font-weight: 800;
+    }
+    #agregar-datos {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    #agregar-datos label {
+      font-weight: 600;
+      margin-right: 0.5rem;
+      white-space: nowrap;
+    }
+    #agregar-datos input, #agregar-datos select {
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      width: 300px;
+      margin-right: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    #agregar-datos input:focus, #agregar-datos select:focus {
+      outline: none;
+      border-color: #4338ca;
+      box-shadow: 0 0 5px rgba(67,56,202,0.4);
+    }
+    #agregar-datos button {
+      background-color: #4338ca;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0.5rem 1.5rem;
+      transition: background-color 0.3s ease;
+    }
+    #agregar-datos button:hover {
+      background-color: #3730a3;
     }
     #filtros {
       background: white;
@@ -33,24 +71,23 @@
       justify-content: center;
       margin-bottom: 1.5rem;
     }
-    label {
+    #filtros label {
       font-weight: 600;
       margin-right: 0.5rem;
-      white-space: nowrap;
     }
-    select {
+    #filtros select {
       padding: 0.5rem 0.7rem;
       border-radius: 6px;
       border: 1px solid #cbd5e1;
       width: 180px;
       transition: border-color 0.3s ease;
     }
-    select:focus {
+    #filtros select:focus {
       outline: none;
       border-color: #4338ca;
       box-shadow: 0 0 5px rgba(67,56,202,0.4);
     }
-    button {
+    #filtros button {
       padding: 0.6rem 1.5rem;
       background-color: #4338ca;
       color: white;
@@ -60,7 +97,7 @@
       font-weight: 700;
       transition: background-color 0.3s ease;
     }
-    button:hover {
+    #filtros button:hover {
       background-color: #3730a3;
     }
     #estadisticas {
@@ -87,6 +124,7 @@
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
       font-size: 0.95rem;
+      vertical-align: top;
     }
     th {
       background-color: #4338ca;
@@ -104,6 +142,14 @@
       background-color: #e0e7ff;
       outline: none;
     }
+    td select[multiple] {
+      width: 100%;
+      height: 80px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      padding: 0.2rem;
+      font-size: 0.9rem;
+    }
     #mensaje {
       margin-top: 1rem;
       font-weight: 700;
@@ -115,6 +161,28 @@
 <body>
 
   <h1>Administrador: Gestión y Filtros</h1>
+
+  <section id="agregar-datos">
+    <h2>Agregar Nuevos Datos</h2>
+
+    <div style="margin-bottom: 1.2rem;">
+      <label for="input-nuevo-local">Nuevo Local:</label>
+      <input type="text" id="input-nuevo-local" placeholder="Nombre local">
+      <button id="btn-agregar-local">Agregar Local</button>
+    </div>
+
+    <div>
+      <label for="select-local-para-institucion">Local para Institución:</label>
+      <select id="select-local-para-institucion">
+        <option value="">Selecciona local</option>
+      </select>
+    </div>
+    <div style="margin-top: 0.8rem; margin-bottom: 1.2rem;">
+      <label for="input-nueva-institucion">Nueva Institución:</label>
+      <input type="text" id="input-nueva-institucion" placeholder="Nombre institución">
+      <button id="btn-agregar-institucion">Agregar Institución</button>
+    </div>
+  </section>
 
   <section id="filtros">
     <label for="filtro-local">Local:</label>
@@ -162,19 +230,27 @@
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Selects y botones formulario y filtros
+  const inputNuevoLocal = document.getElementById('input-nuevo-local');
+  const btnAgregarLocal = document.getElementById('btn-agregar-local');
+  const selectLocalParaInstitucion = document.getElementById('select-local-para-institucion');
+  const inputNuevaInstitucion = document.getElementById('input-nueva-institucion');
+  const btnAgregarInstitucion = document.getElementById('btn-agregar-institucion');
+
   const filtroLocal = document.getElementById('filtro-local');
   const filtroInstitucion = document.getElementById('filtro-institucion');
   const btnFiltrar = document.getElementById('btn-filtrar');
   const btnImprimir = document.getElementById('btn-imprimir');
+
   const tablaCuerpo = document.querySelector('#tabla-datos tbody');
   const mensaje = document.getElementById('mensaje');
-
   const cantidadAlumnosSpan = document.getElementById('cantidad-alumnos');
   const cantidadAcompanantesSpan = document.getElementById('cantidad-acompanantes');
   const cantidadLocalesSpan = document.getElementById('cantidad-locales');
   const cantidadInstitucionesSpan = document.getElementById('cantidad-instituciones');
 
   let datosGlobales = [];
+  let mesasGlobal = [];
 
   async function cargarLocales() {
     const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
@@ -183,10 +259,34 @@
       return;
     }
     filtroLocal.innerHTML = '<option value="">Todos</option>';
+    selectLocalParaInstitucion.innerHTML = '<option value="">Selecciona local</option>';
     data.forEach(local => {
       filtroLocal.innerHTML += `<option value="${local.id}">${local.nombre}</option>`;
+      selectLocalParaInstitucion.innerHTML += `<option value="${local.id}">${local.nombre}</option>`;
     });
   }
+
+  btnAgregarLocal.addEventListener('click', async () => {
+    const nombre = inputNuevoLocal.value.trim();
+    if (!nombre) return alert('Escribe nombre del local');
+    const { error } = await supabase.from('locales').insert([{ nombre }]);
+    if (error) return alert('Error agregando local: ' + error.message);
+    inputNuevoLocal.value = '';
+    await cargarLocales();
+  });
+
+  btnAgregarInstitucion.addEventListener('click', async () => {
+    const localId = selectLocalParaInstitucion.value;
+    const nombre = inputNuevaInstitucion.value.trim();
+    if (!localId || !nombre) return alert('Selecciona local y escribe nombre de la institución');
+    const { error } = await supabase.from('instituciones_educativas').insert([{ nombre, local_id: localId }]);
+    if (error) return alert('Error agregando institución: ' + error.message);
+    inputNuevaInstitucion.value = '';
+    if (localId === filtroLocal.value) {
+      await cargarInstituciones(localId);
+    }
+    await filtrarDatos();
+  });
 
   filtroLocal.addEventListener('change', () => {
     cargarInstituciones(filtroLocal.value);
@@ -213,6 +313,47 @@
     });
   }
 
+  async function cargarMesas() {
+    const { data, error } = await supabase.from('mesas').select('*').order('nombre');
+    if (!error && data) {
+      mesasGlobal = data;
+    }
+  }
+
+  // Actualiza la columna mesas: select múltiple para asignar mesas al alumno
+  async function actualizarMesasEnTabla() {
+    const filas = tablaCuerpo.querySelectorAll('tr');
+    for (const fila of filas) {
+      const alumnoId = fila.querySelector('td[data-tipo="alumno"]')?.dataset.row;
+      if (!alumnoId) continue;
+      let mesasAsignadas = [];
+      const { data, error } = await supabase.from('alumno_mesas').select('mesa_id').eq('alumno_id', alumnoId);
+      if (!error && data) {
+        mesasAsignadas = data.map(m => m.mesa_id);
+      }
+      const opciones = mesasGlobal.map(mesa => (
+        `<option value="${mesa.id}" ${mesasAsignadas.includes(mesa.id) ? 'selected' : ''}>${mesa.nombre}</option>`
+      )).join('');
+      let tdMesas = fila.querySelector('td[data-tipo="mesas"]');
+      if (!tdMesas) {
+        tdMesas = document.createElement('td');
+        tdMesas.setAttribute('data-tipo', 'mesas');
+        tdMesas.setAttribute('data-row', alumnoId);
+        fila.appendChild(tdMesas);
+      }
+      tdMesas.innerHTML = `<select multiple style="width: 100%; border-radius:4px; padding:4px;">${opciones}</select>`;
+      tdMesas.querySelector('select').addEventListener('change', async e => {
+        const selectedOptions = Array.from(e.target.selectedOptions).map(o => parseInt(o.value));
+        await supabase.from('alumno_mesas').delete().eq('alumno_id', alumnoId);
+        if (selectedOptions.length > 0) {
+          const inserts = selectedOptions.map(mesaId => ({ alumno_id: alumnoId, mesa_id: mesaId }));
+          await supabase.from('alumno_mesas').insert(inserts);
+        }
+        mensaje.textContent = 'Mesas actualizadas.';
+      });
+    }
+  }
+
   async function filtrarDatos() {
     tablaCuerpo.innerHTML = '';
     mensaje.textContent = '';
@@ -221,10 +362,8 @@
       .from('alumnos')
       .select(`
         id, nombre, apellido, institucion_id,
-        institucion:instituciones_educativas(id, nombre, local_id),
-        local:instituciones_educativas!instituciones_educativas_local_id_fkey.locales(id, nombre),
-        acompanantes(id, nombre, apellido),
-        mesas:instituciones_educativas!instituciones_educativas_local_id_fkey.mesas(id, nombre)
+        institucion:instituciones_educativas (id, nombre, local_id, local:locales(id, nombre)),
+        acompanantes (id, nombre, apellido)
       `);
 
     if (filtroLocal.value) {
@@ -234,16 +373,17 @@
       query = query.eq('institucion_id', filtroInstitucion.value);
     }
 
-    const { data, error } = await query;
+    const { data: alumnos, error } = await query;
     if (error) {
       mensaje.textContent = 'Error al filtrar datos: ' + error.message;
       return;
     }
-    datosGlobales = data || [];
+
+    datosGlobales = alumnos || [];
 
     const totalAlumnos = datosGlobales.length;
     const totalAcompanantes = datosGlobales.reduce((acc, a) => acc + (a.acompanantes?.length || 0), 0);
-    const localIds = [...new Set(datosGlobales.map(d => d.local?.id).filter(Boolean))];
+    const localIds = [...new Set(datosGlobales.map(d => d.institucion?.local?.id).filter(Boolean))];
     const institucionIds = [...new Set(datosGlobales.map(d => d.institucion?.id).filter(Boolean))];
 
     cantidadAlumnosSpan.textContent = `Alumnos: ${totalAlumnos}`;
@@ -252,25 +392,24 @@
     cantidadInstitucionesSpan.textContent = `Instituciones: ${institucionIds.length}`;
 
     datosGlobales.forEach(alumno => {
-      const acompanantesText = alumno.acompanantes && alumno.acompanantes.length > 0 ?
-        alumno.acompanantes.map(a => `${a.nombre} ${a.apellido}`).join(', ') : 'Sin acompañantes';
-      const mesasText = alumno.mesas && alumno.mesas.length > 0 ? 
-        alumno.mesas.map(m => m.nombre).join(', ') : '--';
+      const acompanantesText = alumno.acompanantes && alumno.acompanantes.length > 0
+        ? alumno.acompanantes.map(a => `${a.nombre} ${a.apellido}`).join(', ')
+        : 'Sin acompañantes';
 
       const fila = document.createElement('tr');
-
       fila.innerHTML = `
-        <td contenteditable="true" data-tipo="local" data-id="${alumno.local?.id || ''}" data-row="${alumno.id}">${alumno.local?.nombre || ''}</td>
+        <td contenteditable="true" data-tipo="local" data-id="${alumno.institucion?.local?.id || ''}" data-row="${alumno.id}">${alumno.institucion?.local?.nombre || ''}</td>
         <td contenteditable="true" data-tipo="institucion" data-id="${alumno.institucion?.id || ''}" data-row="${alumno.id}">${alumno.institucion?.nombre || ''}</td>
         <td contenteditable="true" data-tipo="alumno" data-row="${alumno.id}">${alumno.nombre} ${alumno.apellido}</td>
         <td contenteditable="true" data-tipo="acompanantes" data-row="${alumno.id}">${acompanantesText}</td>
-        <td contenteditable="true" data-tipo="mesas" data-row="${alumno.id}">${mesasText}</td>
+        <td data-tipo="mesas" data-row="${alumno.id}"></td>
       `;
-
       tablaCuerpo.appendChild(fila);
     });
 
     agregarEventosEdicion();
+    await cargarMesas();
+    await actualizarMesasEnTabla();
   }
 
   function agregarEventosEdicion() {
@@ -317,14 +456,6 @@
       }
       else if (tipo === 'acompanantes') {
         mensaje.textContent = 'Edita los acompañantes en la pantalla de alumno.';
-      }
-      else if (tipo === 'mesas') {
-        const mesa = nuevo.split(',')[0].trim();
-        const institucionRow = datosGlobales.find(a => a.id == rowId)?.institucion_id;
-        if (mesa && institucionRow) {
-          await supabase.from('mesas').insert([{ nombre: mesa, local_id: filtroLocal.value || null }]);
-          mensaje.textContent = 'Mesa actualizada.';
-        }
       }
       await filtrarDatos();
     } catch (error) {
