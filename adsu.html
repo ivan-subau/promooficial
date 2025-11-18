@@ -38,14 +38,14 @@
       margin-right: 0.5rem;
       white-space: nowrap;
     }
-    select, input[type="text"] {
+    select {
       padding: 0.5rem 0.7rem;
       border-radius: 6px;
       border: 1px solid #cbd5e1;
       width: 180px;
       transition: border-color 0.3s ease;
     }
-    select:focus, input:focus {
+    select:focus {
       outline: none;
       border-color: #4338ca;
       box-shadow: 0 0 5px rgba(67,56,202,0.4);
@@ -127,9 +127,6 @@
       <option value="">Todas</option>
     </select>
 
-    <label for="busqueda-alumno">Buscar alumno:</label>
-    <input type="text" id="busqueda-alumno" placeholder="Nombre o apellido" style="width: 250px;">
-
     <button id="btn-filtrar">Filtrar</button>
     <button id="btn-imprimir" style="margin-left: 1rem;">Imprimir PDF</button>
   </section>
@@ -167,7 +164,6 @@
 
   const filtroLocal = document.getElementById('filtro-local');
   const filtroInstitucion = document.getElementById('filtro-institucion');
-  const busquedaAlumno = document.getElementById('busqueda-alumno');
   const btnFiltrar = document.getElementById('btn-filtrar');
   const btnImprimir = document.getElementById('btn-imprimir');
   const tablaCuerpo = document.querySelector('#tabla-datos tbody');
@@ -221,7 +217,6 @@
     tablaCuerpo.innerHTML = '';
     mensaje.textContent = '';
 
-    // Construcción dinámica de filtro
     let query = supabase
       .from('alumnos')
       .select(`
@@ -232,28 +227,11 @@
         mesas:instituciones_educativas!instituciones_educativas_local_id_fkey.mesas(id, nombre)
       `);
 
-    // Aplica sólo filtros que tengan valor
-    const filtros = [];
     if (filtroLocal.value) {
-      filtros.push({ tipo: 'eq', campo: 'institucion.local_id', valor: filtroLocal.value });
+      query = query.eq('institucion.local_id', filtroLocal.value);
     }
     if (filtroInstitucion.value) {
-      filtros.push({ tipo: 'eq', campo: 'institucion_id', valor: filtroInstitucion.value });
-    }
-    if (busquedaAlumno.value.trim()) {
-      filtros.push({ tipo: 'ilike', campo: 'nombre', valor: `%${busquedaAlumno.value.trim()}%` });
-      filtros.push({ tipo: 'or', valor: `apellido.ilike.%${busquedaAlumno.value.trim()}%` });
-    }
-
-    // Aplicar filtros a la consulta
-    for (let filtro of filtros) {
-      if (filtro.tipo === 'eq') {
-        query = query.eq(filtro.campo, filtro.valor);
-      } else if (filtro.tipo === 'ilike') {
-        query = query.ilike(filtro.campo, filtro.valor);
-      } else if (filtro.tipo === 'or') {
-        query = query.or(filtro.valor);
-      }
+      query = query.eq('institucion_id', filtroInstitucion.value);
     }
 
     const { data, error } = await query;
@@ -263,7 +241,6 @@
     }
     datosGlobales = data || [];
 
-    // Estadísticas
     const totalAlumnos = datosGlobales.length;
     const totalAcompanantes = datosGlobales.reduce((acc, a) => acc + (a.acompanantes?.length || 0), 0);
     const localIds = [...new Set(datosGlobales.map(d => d.local?.id).filter(Boolean))];
