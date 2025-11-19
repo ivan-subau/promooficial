@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Evento - Comité</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #2563eb; /* Azul moderno */
+      --primary-dark: #1e40af;
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-light: #64748b;
+      --border: #cbd5e1;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Contenedor Principal */
+    .main-card {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 800px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+
+    p.subtitle {
+      text-align: center;
+      color: var(--text-light);
+      margin-bottom: 2rem;
+    }
+
+    /* Formularios y Inputs */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Grid para inputs */
+    .row-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background-color: var(--primary-dark); }
+    .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .btn-success:hover { background-color: #059669; transform: translateY(-1px); }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      width: auto;
+    }
+    
+    .btn-danger { background-color: #fee2e2; color: var(--danger); }
+    .btn-danger:hover { background-color: #fecaca; }
+
+    .btn-secondary { background-color: #e2e8f0; color: var(--text-main); }
+    .btn-secondary:hover { background-color: #cbd5e1; }
+
+    /* Tarjetas de Alumnos */
+    .alumno-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .alumno-header {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Sección Acompañantes */
+    .acompanantes-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+    }
+    
+    .acomp-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+    .acomp-row input { padding: 0.5rem; font-size: 0.9rem; }
+
+    /* Utilidades */
+    .hidden { display: none; }
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #message {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: 600;
+      padding: 0.5rem;
+      border-radius: 6px;
+    }
+    .msg-error { background: #fee2e2; color: var(--danger); }
+    .msg-success { background: #d1fae5; color: #065f46; }
+
+    /* =========================================
+       ESTILOS DE IMPRESIÓN (TICKET / VOUCHER)
+       ========================================= */
+    #print-area { display: none; }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+      .main-card, .no-print {
+        display: none !important;
+      }
+      #print-area {
+        display: block;
+        width: 100%;
+        max-width: 800px; /* A4 aprox */
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Courier New', Courier, monospace; /* Estilo ticket */
+        color: black;
+      }
+      
+      .ticket-header {
+        text-align: center;
+        border-bottom: 2px dashed #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+      .ticket-header h2 { margin: 5px 0; font-size: 24px; text-transform: uppercase; }
+      .ticket-info { margin-bottom: 20px; }
+      .ticket-info p { margin: 5px 0; font-size: 14px; }
+      
+      table.ticket-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      table.ticket-table th, table.ticket-table td {
+        text-align: left;
+        padding: 8px 4px;
+        border-bottom: 1px solid #ddd;
+      }
+      table.ticket-table th { border-top: 2px solid #000; border-bottom: 2px solid #000; }
+      
+      .ticket-total {
+        text-align: right;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 20px;
+        border-top: 2px dashed #000;
+        padding-top: 10px;
+      }
+      
+      .ticket-footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 12px;
+      }
+      .firma-box {
+        margin-top: 50px;
+        border-top: 1px solid #000;
+        width: 200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-card" id="app-card">
+    <h1>Registro de Ingreso</h1>
+    <p class="subtitle">Comité de Organización</p>
+
+    <div id="pantalla1" class="fade-in">
+      <div class="form-group">
+        <label>1. Selecciona Local</label>
+        <select id="local-select">
+          <option value="">Cargando locales...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>2. Institución Educativa</label>
+        <div class="row-grid">
+          <select id="institucion-select" class="hidden">
+             </select>
+          <input type="text" id="institucion-input" placeholder="Nueva Institución (si no está en lista)" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>3. Cantidad de Alumnos a Registrar</label>
+        <input type="number" id="numero-alumnos" min="1" value="1" placeholder="Ej. 1" style="font-size: 1.2rem; font-weight:bold; color: var(--primary);" />
+      </div>
+
+      <button id="btn-siguiente" class="btn btn-primary">Continuar al Registro &rarr;</button>
+    </div>
+
+    <div id="pantalla2" class="hidden fade-in">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="margin:0;">Detalle de Asistentes</h3>
+        <button id="btn-volver" class="btn btn-secondary btn-sm">Cancel / Volver</button>
+      </div>
+
+      <div id="alumnos-container">
+        </div>
+
+      <div id="message"></div>
+
+      <button id="btn-guardar" class="btn btn-success" style="margin-top: 1.5rem;">
+        <span style="margin-right:8px">💾</span> Guardar y Generar Ticket
+      </button>
+    </div>
+
+    <div id="pantalla3" class="hidden fade-in" style="text-align: center; padding-top: 2rem;">
+      <div style="font-size: 4rem;">✅</div>
+      <h2>¡Registro Guardado!</h2>
+      <p>Los datos se han sincronizado correctamente.</p>
+      <button id="btn-imprimir" class="btn btn-primary" style="margin-bottom: 1rem;">🖨️ Imprimir Voucher</button>
+      <br>
+      <button id="btn-nuevo" class="btn btn-secondary">Nuevo Registro</button>
+    </div>
+  </div>
+
+  <div id="print-area">
+    <div class="ticket-header">
+      <h2>Comité de Evento</h2>
+      <p>VOUCHER DE REGISTRO</p>
+      <p id="print-fecha" style="font-size:12px;"></p>
+    </div>
+    
+    <div class="ticket-info">
+      <p><strong>Local:</strong> <span id="print-local"></span></p>
+      <p><strong>Institución:</strong> <span id="print-institucion"></span></p>
+      <p><strong>ID Registro:</strong> <span id="print-id">#Pendiente</span></p>
+    </div>
+
+    <table class="ticket-table">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th style="text-align:right">Acompañantes</th>
+        </tr>
+      </thead>
+      <tbody id="print-tbody">
+        </tbody>
+    </table>
+
+    <div class="ticket-total">
+      TOTAL PERSONAS: <span id="print-total">0</span>
+    </div>
+
+    <div class="ticket-footer">
+      <div class="firma-box">Firma Responsable</div>
+      <p>Gracias por su asistencia.</p>
+    </div>
+  </div>
+
+<script>
+  // CONFIGURACIÓN DE SUPABASE
+  const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
+  const { createClient } = window.supabase;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // REFERENCIAS DOM
+  const pantalla1 = document.getElementById('pantalla1');
+  const pantalla2 = document.getElementById('pantalla2');
+  const pantalla3 = document.getElementById('pantalla3');
+  const messageBox = document.getElementById('message');
+
+  // Inputs Paso 1
+  const localSelect = document.getElementById('local-select');
+  const instSelect = document.getElementById('institucion-select');
+  const instInput = document.getElementById('institucion-input');
+  const numAlumnosInput = document.getElementById('numero-alumnos');
+  const btnSiguiente = document.getElementById('btn-siguiente');
+
+  // Inputs Paso 2
+  const containerAlumnos = document.getElementById('alumnos-container');
+  const btnGuardar = document.getElementById('btn-guardar');
+  const btnVolver = document.getElementById('btn-volver');
+
+  // Inputs Paso 3
+  const btnImprimir = document.getElementById('btn-imprimir');
+  const btnNuevo = document.getElementById('btn-nuevo');
+
+  // Variables de Estado
+  let alumnosData = []; // { nombre, apellido, acompanantes: [{nombre, apellido}] }
+  let datosSesion = {}; // Almacena local, institucionId, etc.
+
+  // ----------------------------------------------------------
+  // FUNCIONES DE CARGA INICIAL
+  // ----------------------------------------------------------
+  async function init() {
+    const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
+    if (error) return showMsg('Error cargando locales', 'error');
+    
+    localSelect.innerHTML = '<option value="">-- Selecciona Local --</option>';
+    data.forEach(l => {
+      localSelect.innerHTML += `<option value="${l.id}">${l.nombre}</option>`;
+    });
+  }
+
+  // Cargar Instituciones al cambiar Local
+  localSelect.addEventListener('change', async () => {
+    const localId = localSelect.value;
+    instSelect.classList.add('hidden');
+    instInput.style.display = 'block'; // Reset
+    instInput.value = '';
+    
+    if(!localId) return;
+
+    const { data } = await supabase.from('instituciones_educativas')
+      .select('id, nombre').eq('local_id', localId).order('nombre');
+    
+    if (data && data.length > 0) {
+      instSelect.classList.remove('hidden');
+      instInput.style.display = 'none';
+      instSelect.innerHTML = '<option value="">-- Selecciona Institución --</option><option value="nueva">+ Nueva Institución</option>';
+      data.forEach(i => {
+        instSelect.innerHTML += `<option value="${i.id}">${i.nombre}</option>`;
+      });
+    }
+  });
+
+  // Manejo input vs select institucion
+  instSelect.addEventListener('change', () => {
+    if(instSelect.value === 'nueva') {
+      instInput.style.display = 'block';
+      instInput.focus();
+    } else {
+      instInput.style.display = 'none';
+    }
+  });
+
+  // ----------------------------------------------------------
+  // NAVEGACIÓN
+  // ----------------------------------------------------------
+  btnSiguiente.addEventListener('click', () => {
+    const cant = parseInt(numAlumnosInput.value);
+    if (!localSelect.value) return showMsg('Falta seleccionar Local', 'error');
+    if (instSelect.value !== 'nueva' && !instSelect.value && !instInput.value) return showMsg('Falta Institución', 'error');
+    if (cant < 1) return showMsg('Mínimo 1 alumno', 'error');
+
+    // Guardar estado temporal
+    datosSesion = {
+      localId: localSelect.value,
+      institucionId: (instSelect.value && instSelect.value !== 'nueva') ? instSelect.value : null,
+      institucionNombre: instInput.value || instSelect.options[instSelect.selectedIndex].text,
+      cantidad: cant
+    };
+
+    generarFormularioAlumnos(cant);
+    
+    pantalla1.classList.add('hidden');
+    pantalla2.classList.remove('hidden');
+    window.scrollTo(0,0);
+    showMsg('', '');
+  });
+
+  btnVolver.addEventListener('click', () => {
+    pantalla2.classList.add('hidden');
+    pantalla1.classList.remove('hidden');
+  });
+
+  btnNuevo.addEventListener('click', () => {
+    location.reload();
+  });
+
+  // ----------------------------------------------------------
+  // RENDERIZADO DINÁMICO (UI)
+  // ----------------------------------------------------------
+  function generarFormularioAlumnos(n) {
+    containerAlumnos.innerHTML = '';
+    alumnosData = [];
+
+    for(let i=0; i<n; i++) {
+      // Estructura de datos inicial
+      alumnosData.push({ nombre: '', apellido: '', acompanantes: [] });
+
+      const card = document.createElement('div');
+      card.className = 'alumno-card fade-in';
+      card.innerHTML = `
+        <div class="alumno-header">Alumno #${i+1}</div>
+        <div class="row-grid">
+          <div>
+            <label>Nombre</label>
+            <input type="text" data-idx="${i}" class="input-alumno-nombre" placeholder="Nombres">
+          </div>
+          <div>
+            <label>Apellido</label>
+            <input type="text" data-idx="${i}" class="input-alumno-apellido" placeholder="Apellidos">
+          </div>
+        </div>
+
+        <div class="acompanantes-section">
+          <label style="font-weight:bold; color:#64748b;">Acompañantes</label>
+          <div id="lista-acomp-${i}"></div>
+          <button class="btn btn-secondary btn-sm" onclick="agregarFilaAcomp(${i})" style="margin-top:0.5rem;">+ Agregar Acompañante</button>
+        </div>
+      `;
+      containerAlumnos.appendChild(card);
+    }
+
+    // Listeners para inputs de alumnos
+    document.querySelectorAll('.input-alumno-nombre').forEach(el => {
+      el.addEventListener('input', (e) => alumnosData[e.target.dataset.idx].nombre = e.target.value);
+    });
+    document.querySelectorAll('.input-alumno-apellido').forEach(el => {
+      el.addEventListener('input', (e) => alumnosData[e.target.dataset.idx].apellido = e.target.value);
+    });
+  }
+
+  window.agregarFilaAcomp = (alumnoIdx) => {
+    const lista = document.getElementById(`lista-acomp-${alumnoIdx}`);
+    const acompIdx = alumnosData[alumnoIdx].acompanantes.length;
+    
+    // Añadir al array de datos
+    alumnosData[alumnoIdx].acompanantes.push({ nombre: '', apellido: '' });
+
+    const fila = document.createElement('div');
+    fila.className = 'acomp-row fade-in';
+    fila.innerHTML = `
+      <input type="text" placeholder="Nombre" oninput="updateAcomp(${alumnoIdx}, ${acompIdx}, 'nombre', this.value)">
+      <input type="text" placeholder="Apellido" oninput="updateAcomp(${alumnoIdx}, ${acompIdx}, 'apellido', this.value)">
+      <button class="btn btn-danger btn-sm" onclick="removerAcomp(${alumnoIdx}, ${acompIdx}, this)">✕</button>
+    `;
+    lista.appendChild(fila);
+  };
+
+  window.updateAcomp = (alIdx, acIdx, campo, valor) => {
+    alumnosData[alIdx].acompanantes[acIdx][campo] = valor;
+  };
+
+  window.removerAcomp = (alIdx, acIdx, btn) => {
+    // Nota: visualmente lo removemos, en datos lo marcamos nulo o filtramos al guardar para simplificar lógica de índices
+    // Una forma simple es ocultar y vaciar valores
+    alumnosData[alIdx].acompanantes[acIdx] = null; 
+    btn.parentElement.remove();
+  };
+
+  // ----------------------------------------------------------
+  // LOGICA DE GUARDADO
+  // ----------------------------------------------------------
+  btnGuardar.addEventListener('click', async () => {
+    // 1. Validaciones
+    const alumnosValidos = alumnosData.map(a => {
+       // Filtrar acompañantes eliminados (null)
+       const acompLimpio = a.acompanantes.filter(ac => ac !== null && ac.nombre.trim() !== '');
+       return { ...a, acompanantes: acompLimpio };
+    });
+
+    for(let i=0; i<alumnosValidos.length; i++) {
+      if(!alumnosValidos[i].nombre.trim() || !alumnosValidos[i].apellido.trim()) {
+        return showMsg(`Faltan datos del Alumno #${i+1}`, 'error');
+      }
+    }
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = 'Guardando...';
+    showMsg('', '');
+
+    try {
+      // 2. Resolver Institución (Crear si es nueva)
+      let finalInstId = datosSesion.institucionId;
+      
+      if (!finalInstId) {
+        // Verificar si existe por nombre primero para no duplicar
+        const { data: existe } = await supabase.from('instituciones_educativas')
+          .select('id').ilike('nombre', datosSesion.institucionNombre.trim()).maybeSingle();
+        
+        if (existe) {
+          finalInstId = existe.id;
+        } else {
+          const { data: nueva, error: errInst } = await supabase.from('instituciones_educativas')
+            .insert([{ nombre: datosSesion.institucionNombre.trim(), local_id: datosSesion.localId }])
+            .select().single();
+          if (errInst) throw errInst;
+          finalInstId = nueva.id;
+        }
+      }
+
+      // 3. Crear Registro Comité (Cabecera)
+      const { data: regComite, error: errCom } = await supabase.from('registros_comite')
+        .insert([{ 
+          local_id: datosSesion.localId, 
+          institucion_id: finalInstId, 
+          numero_alumnos: datosSesion.cantidad 
+        }])
+        .select().single();
+      
+      if (errCom) throw errCom;
+
+      // 4. Insertar Alumnos y Acompañantes
+      for (const alum of alumnosValidos) {
+        // Insertar Alumno
+        const { data: alumDb, error: errAl } = await supabase.from('alumnos')
+          .insert([{ 
+            nombre: alum.nombre, 
+            apellido: alum.apellido, 
+            institucion_id: finalInstId 
+          }])
+          .select().single();
+        if (errAl) throw errAl;
+
+        // Vincular con registro
+        await supabase.from('registro_alumnos').insert([{
+          registro_comite_id: regComite.id,
+          alumno_id: alumDb.id
+        }]);
+
+        // Insertar Acompañantes
+        if (alum.acompanantes.length > 0) {
+          const insertsAcomp = alum.acompanantes.map(ac => ({
+            nombre: ac.nombre,
+            apellido: ac.apellido,
+            alumno_id: alumDb.id
+          }));
+          const { error: errAcomp } = await supabase.from('acompanantes').insert(insertsAcomp);
+          if (errAcomp) throw errAcomp;
+        }
+      }
+
+      // 5. Finalizar
+      prepararImpresion(alumnosValidos, regComite.id, finalInstId);
+      pantalla2.classList.add('hidden');
+      pantalla3.classList.remove('hidden');
+
+    } catch (err) {
+      console.error(err);
+      showMsg('Error al guardar: ' + err.message, 'error');
+      btnGuardar.disabled = false;
+      btnGuardar.innerHTML = '💾 Guardar y Generar Ticket';
+    }
+  });
+
+  // ----------------------------------------------------------
+  // IMPRESIÓN
+  // ----------------------------------------------------------
+  async function prepararImpresion(alumnos, registroId, instId) {
+    const localNombre = localSelect.options[localSelect.selectedIndex].text;
+    // Buscar nombre institucion si era ID
+    let instNombre = datosSesion.institucionNombre;
+    if(!instNombre && instId) {
+       // Si vino de select y no de input, sacarlo del DOM
+       const opt = instSelect.querySelector(`option[value="${instId}"]`);
+       if(opt) instNombre = opt.text;
+    }
+
+    document.getElementById('print-fecha').textContent = new Date().toLocaleString();
+    document.getElementById('print-local').textContent = localNombre;
+    document.getElementById('print-institucion').textContent = instNombre;
+    document.getElementById('print-id').textContent = '#' + registroId.toString().padStart(6, '0');
+
+    const tbody = document.getElementById('print-tbody');
+    tbody.innerHTML = '';
+    
+    let totalPersonas = 0;
+
+    alumnos.forEach(al => {
+      const tr = document.createElement('tr');
+      const cantAcomp = al.acompanantes.length;
+      totalPersonas += (1 + cantAcomp);
+
+      // Formatear nombres acompañantes
+      const nombresAcomp = al.acompanantes.map(a => `${a.nombre} ${a.apellido}`).join(', ');
+
+      tr.innerHTML = `
+        <td>
+          <strong>${al.nombre} ${al.apellido}</strong>
+        </td>
+        <td style="text-align:right">
+          ${cantAcomp > 0 ? cantAcomp + ' (' + nombresAcomp + ')' : '0'}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('print-total').textContent = totalPersonas;
+  }
+
+  btnImprimir.addEventListener('click', () => {
+    window.print();
+  });
+
+  // Utilidad Mensajes
+  function showMsg(txt, type) {
+    messageBox.textContent = txt;
+    messageBox.className = type === 'error' ? 'msg-error' : (type ? 'msg-success' : '');
+  }
+
+  // Iniciar
+  init();
+</script>
+</body>
+</html>
