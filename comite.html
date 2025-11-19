@@ -14,136 +14,57 @@
       --bg-body: #f3f4f6;
       --bg-card: #ffffff;
       --text-main: #1f2937;
-      --text-light: #6b7280;
       --border: #e5e7eb;
       --success: #10b981;
-      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 2rem; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      margin: 0;
-      padding: 0;
-    }
-
-    /* LAYOUT PRINCIPAL */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
+    .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: var(--primary); margin-bottom: 1.5rem; }
 
-    /* STATS CARDS (KPIs) */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: var(--bg-card);
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border-left: 5px solid var(--primary);
-    }
-    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); }
-    .stat-label { color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* GRID DE ESTADÍSTICAS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .stat-value { font-size: 2rem; font-weight: 700; }
+    .stat-label { color: #6b7280; font-size: 0.9rem; text-transform: uppercase; }
 
-    /* PANELES DE ACCIÓN */
-    .action-panel {
-      background: var(--bg-card);
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-    
+    /* PANEL DE ACCIONES */
+    .action-panel { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .panel-title { font-size: 1.1rem; font-weight: 600; color: var(--primary-dark); margin: 0; }
-
-    /* FORMULARIOS Y FILTROS */
-    .controls-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      align-items: end;
-    }
-
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main); }
     
-    input, select {
-      width: 100%; padding: 0.6rem; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 0.95rem; outline: none;
-    }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-
-    button {
-      padding: 0.6rem 1.2rem; border: none; border-radius: 6px;
-      font-weight: 600; cursor: pointer; transition: 0.2s;
-    }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); }
+    /* FORMULARIOS */
+    .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; align-items: end; }
+    
+    input, select { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; }
+    
+    button { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
+    button:hover { background: var(--primary-dark); }
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
     .btn-outline:hover { background: #eef2ff; }
     .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 
-    /* TABLA DE DATOS */
-    .table-responsive { overflow-x: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    /* TABLA */
+    .table-responsive { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--primary); color: white; padding: 1rem; text-align: left; }
+    td { padding: 1rem; border-bottom: 1px solid var(--border); }
     
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th { background: var(--primary); color: white; padding: 1rem; text-align: left; font-weight: 600; white-space: nowrap; }
-    td { padding: 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-    tr:hover { background-color: #f9fafb; }
+    .badge-mesa { background: #e0e7ff; color: var(--primary-dark); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin: 2px; display: inline-block; }
 
-    /* Badges */
-    .badge-mesa {
-      display: inline-block; background: #e0e7ff; color: var(--primary-dark);
-      padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin: 2px;
-    }
-    .acomp-list-item { font-size: 0.85rem; color: var(--text-light); display: block; margin-top: 2px; }
-    .acomp-list-item::before { content: "• "; color: var(--primary); }
+    /* MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: white; width: 90%; max-width: 600px; padding: 2rem; border-radius: 12px; max-height: 90vh; overflow-y: auto; position: relative; }
+    .close-modal { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; }
 
-    /* MODAL EDITAR */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;
-      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s;
-    }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-    
-    .modal-content {
-      background: white; width: 90%; max-width: 600px; padding: 2rem;
-      border-radius: 12px; position: relative; max-height: 90vh; overflow-y: auto;
-    }
-    .close-modal { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #999; }
+    .mesa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; max-height: 150px; overflow-y: auto; }
+    .mesa-check { display: flex; align-items: center; font-size: 0.9rem; background: #f9fafb; padding: 5px; border-radius: 4px; cursor: pointer; }
+    .mesa-check:hover { background: #eff6ff; }
+    .mesa-check input { width: auto; margin: 0 8px 0 0; }
 
-    .mesa-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem;
-      margin-top: 0.5rem; max-height: 150px; overflow-y: auto; border: 1px solid var(--border); padding: 0.5rem;
-    }
-    .mesa-check {
-      display: flex; align-items: center; font-size: 0.85rem; cursor: pointer;
-      background: #f3f4f6; padding: 4px; border-radius: 4px;
-    }
-    .mesa-check input { width: auto; margin-right: 6px; }
-
-    /* IMPRESIÓN */
-    @media print {
-      body { background: white; padding: 0; }
-      .no-print, .action-panel, .stats-grid, .modal-overlay { display: none !important; }
-      .container { max-width: 100%; padding: 0; }
-      table { box-shadow: none; border: 1px solid #000; }
-      th, td { border: 1px solid #000; color: black; }
-      th { background: #eee !important; color: black; }
-      h1 { text-align: center; font-size: 18px; margin: 10px 0; }
-    }
+    @media print { .no-print, .stats-grid, .action-panel { display: none !important; } body { padding: 0; } }
   </style>
 </head>
 <body>
@@ -154,44 +75,53 @@
   <section class="stats-grid no-print">
     <div class="stat-card">
       <div class="stat-value" id="stat-alumnos">0</div>
-      <div class="stat-label">Total Alumnos</div>
+      <div class="stat-label">Alumnos</div>
     </div>
     <div class="stat-card" style="border-color: var(--success);">
       <div class="stat-value" id="stat-invitados">0</div>
-      <div class="stat-label">Total Personas (Inc. Acomp)</div>
+      <div class="stat-label">Total Asistentes</div>
     </div>
-    <div class="stat-card" style="border-color: var(--warning);">
+    <div class="stat-card" style="border-color: #f59e0b;">
       <div class="stat-value" id="stat-mesas">0</div>
-      <div class="stat-label">Mesas Asignadas</div>
+      <div class="stat-label">Mesas Ocupadas</div>
     </div>
   </section>
 
   <section class="action-panel no-print">
     <div class="panel-header">
-      <h3 class="panel-title">Gestión y Filtros</h3>
-      <div>
-        <button class="btn-outline btn-sm" onclick="toggleAddForm()">+ Nuevo Local/Institución</button>
-        <button class="btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir Reporte</button>
-      </div>
+      <h3>Herramientas de Gestión</h3>
+      <button class="btn-primary" onclick="window.print()">🖨️ Imprimir Lista</button>
     </div>
 
-    <div id="add-data-form" style="display:none; background:#f9fafb; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px dashed #cbd5e1;">
+      <h4 style="margin-top:0; color: var(--primary);">Agregar Nuevo Elemento</h4>
       <div class="controls-grid">
+        
         <div>
           <label>Nuevo Local</label>
-          <div style="display:flex; gap:0.5rem;">
-            <input type="text" id="new-local-name" placeholder="Nombre Local">
-            <button class="btn-primary btn-sm" onclick="agregarLocal()">Guardar</button>
+          <div style="display:flex; gap:5px;">
+            <input type="text" id="new-local" placeholder="Ej. Salón Dorado">
+            <button onclick="addLocal()">+</button>
           </div>
         </div>
+
         <div>
-          <label>Nueva Institución</label>
-          <div style="display:flex; gap:0.5rem;">
-            <select id="select-local-add"><option>Cargando...</option></select>
-            <input type="text" id="new-inst-name" placeholder="Nombre Inst.">
-            <button class="btn-primary btn-sm" onclick="agregarInstitucion()">Guardar</button>
+          <label>Nueva Institución (Selecciona Local primero)</label>
+          <div style="display:flex; gap:5px;">
+            <select id="select-local-add" style="width: 40%;"><option>Cargando...</option></select>
+            <input type="text" id="new-inst" placeholder="Ej. Colegio San José" style="width: 60%;">
+            <button onclick="addInstitucion()">+</button>
           </div>
         </div>
+
+        <div>
+          <label>Nueva Mesa</label>
+          <div style="display:flex; gap:5px;">
+            <input type="text" id="new-mesa" placeholder="Ej. Mesa 1, VIP...">
+            <button class="btn-outline" onclick="addMesa()">+ Crear Mesa</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -206,7 +136,7 @@
       </div>
       <div>
         <label>Buscar Alumno</label>
-        <input type="text" id="busqueda-texto" placeholder="Escribe nombre..." onkeyup="filtrarDatos()">
+        <input type="text" id="search-text" placeholder="Nombre..." onkeyup="filtrarDatos()">
       </div>
     </div>
   </section>
@@ -215,51 +145,47 @@
     <table>
       <thead>
         <tr>
-          <th>Institución / Local</th>
+          <th>Ubicación</th>
           <th>Alumno</th>
           <th>Acompañantes</th>
-          <th>Mesas</th>
-          <th class="no-print">Acción</th>
+          <th>Mesas Asignadas</th>
+          <th class="no-print">Editar</th>
         </tr>
       </thead>
-      <tbody id="tabla-body">
-        </tbody>
+      <tbody id="tabla-body"></tbody>
     </table>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-editar">
   <div class="modal-content">
-    <span class="close-modal" onclick="cerrarModal()">&times;</span>
-    <h2 style="margin-top:0; color:var(--primary);">Editar Asistente</h2>
-    <input type="hidden" id="edit-alumno-id">
+    <span class="close-modal" onclick="closeModal()">&times;</span>
+    <h2 style="color:var(--primary); margin-top:0;">Editar Registro</h2>
+    <input type="hidden" id="edit-id">
 
     <div class="controls-grid" style="margin-bottom:1rem;">
-      <div>
-        <label>Nombre</label>
-        <input type="text" id="edit-nombre">
+      <div><label>Nombre</label><input type="text" id="edit-nombre"></div>
+      <div><label>Apellido</label><input type="text" id="edit-apellido"></div>
+    </div>
+
+    <div style="margin-bottom:1.5rem;">
+      <label style="display:flex; justify-content:space-between;">
+        Asignar Mesas
+        <small style="color: #666; font-weight:normal;">(Marca las casillas)</small>
+      </label>
+      <div class="mesa-grid" id="mesas-checkboxes">
+        <p style="color:#999; text-align:center;">No hay mesas creadas. Agrega una en el panel principal.</p>
       </div>
-      <div>
-        <label>Apellido</label>
-        <input type="text" id="edit-apellido">
-      </div>
     </div>
 
-    <div style="margin-bottom:1rem;">
-      <label>Asignar Mesas</label>
-      <div class="mesa-grid" id="mesa-checkboxes">
-        </div>
+    <div>
+      <label>Acompañantes</label>
+      <div id="edit-acompanantes-container"></div>
     </div>
 
-    <div style="margin-bottom:1rem;">
-      <label>Acompañantes (Editar nombres)</label>
-      <div id="edit-acompanantes-list">
-        </div>
-    </div>
-
-    <div style="text-align:right; margin-top:1.5rem;">
-      <button class="btn-outline" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-primary" onclick="guardarEdicion()">Guardar Cambios</button>
+    <div style="margin-top:2rem; text-align:right;">
+      <button class="btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarCambios()">Guardar Todo</button>
     </div>
   </div>
 </div>
@@ -270,37 +196,29 @@
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Estado Global
   let dataGlobal = [];
   let mesasGlobal = [];
-  let localesGlobal = [];
-  let editandoAcompanantesIds = []; // Para trackear IDs en el modal
-
-  // DOM Elements
+  
+  // Elementos DOM
+  const tBody = document.getElementById('tabla-body');
   const filtroLocal = document.getElementById('filtro-local');
   const filtroInst = document.getElementById('filtro-institucion');
-  const busquedaInput = document.getElementById('busqueda-texto');
-  const tbody = document.getElementById('tabla-body');
-  
-  // Inicialización
-  init();
+  const searchText = document.getElementById('search-text');
 
+  // --- INICIO ---
+  init();
   async function init() {
-    await Promise.all([cargarLocales(), cargarMesas()]);
-    await cargarDatos(); // Carga inicial de todo
+    await Promise.all([cargarLocales(), cargarMesas()]); // Cargar maestros primero
+    await cargarDatos();
   }
 
-  // --- CARGA DE DATOS MAESTROS ---
+  // --- CARGAS MAESTRAS ---
   async function cargarLocales() {
     const { data } = await supabase.from('locales').select('*').order('nombre');
-    localesGlobal = data || [];
-    
-    // Llenar select filtros y select agregar
-    const opciones = `<option value="">Todos / Seleccionar</option>` + 
-      localesGlobal.map(l => `<option value="${l.id}">${l.nombre}</option>`).join('');
-    
-    filtroLocal.innerHTML = opciones;
-    document.getElementById('select-local-add').innerHTML = opciones;
+    const opts = '<option value="">Todos / Seleccionar</option>' + 
+                 (data || []).map(l => `<option value="${l.id}">${l.nombre}</option>`).join('');
+    filtroLocal.innerHTML = opts;
+    document.getElementById('select-local-add').innerHTML = opts;
   }
 
   async function cargarMesas() {
@@ -308,227 +226,194 @@
     mesasGlobal = data || [];
   }
 
-  // --- CARGA DE DATOS PRINCIPAL ---
-  async function cargarDatos() {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Cargando datos...</td></tr>';
+  // --- CRUD DE AGREGAR NUEVOS ELEMENTOS ---
+  async function addLocal() {
+    const nombre = document.getElementById('new-local').value.trim();
+    if(!nombre) return alert('Escribe un nombre');
+    await supabase.from('locales').insert([{nombre}]);
+    document.getElementById('new-local').value = '';
+    cargarLocales();
+    alert('Local creado');
+  }
+
+  async function addInstitucion() {
+    const localId = document.getElementById('select-local-add').value;
+    const nombre = document.getElementById('new-inst').value.trim();
+    if(!localId || !nombre) return alert('Selecciona local y escribe nombre');
+    await supabase.from('instituciones_educativas').insert([{nombre, local_id: localId}]);
+    document.getElementById('new-inst').value = '';
+    alert('Institución creada');
+    // No recargamos todo, el usuario la verá al filtrar o crear otro
+  }
+
+  // 🌟 FUNCIÓN PARA CREAR MESA
+  async function addMesa() {
+    const nombre = document.getElementById('new-mesa').value.trim();
+    if(!nombre) return alert('Escribe nombre de la mesa (ej: Mesa 1)');
     
-    let query = supabase.from('alumnos')
+    const { error } = await supabase.from('mesas').insert([{nombre}]);
+    if(error) return alert('Error: ' + error.message);
+    
+    document.getElementById('new-mesa').value = '';
+    await cargarMesas(); // Recargar lista global de mesas
+    alert('Mesa creada correctamente. Ahora puedes asignarla en "Editar".');
+  }
+
+  // --- CARGAR Y MOSTRAR ALUMNOS ---
+  async function cargarDatos() {
+    tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Cargando...</td></tr>';
+    
+    const { data, error } = await supabase.from('alumnos')
       .select(`
         id, nombre, apellido, institucion_id,
         institucion:instituciones_educativas (id, nombre, local_id, local:locales(nombre)),
         acompanantes (id, nombre, apellido),
         alumno_mesas (mesa:mesas(id, nombre))
       `)
-      .order('id', { ascending: false }); // Más recientes primero
+      .order('id', {ascending:false});
 
-    const { data, error } = await query;
-    
-    if (error) {
-      alert('Error: ' + error.message);
-      return;
-    }
-
-    dataGlobal = data;
-    filtrarDatos(); // Renderizar con filtros actuales (vacíos al inicio)
+    if(error) return alert(error.message);
+    dataGlobal = data || [];
+    filtrarDatos();
   }
 
   function filtrarDatos() {
-    const localId = filtroLocal.value;
-    const instId = filtroInst.value;
-    const texto = busquedaInput.value.toLowerCase();
+    const loc = filtroLocal.value;
+    const inst = filtroInst.value;
+    const txt = searchText.value.toLowerCase();
 
-    // Filtrado en cliente (más rápido para < 1000 registros)
-    const filtrados = dataGlobal.filter(item => {
-      const matchLocal = localId ? item.institucion?.local_id == localId : true;
-      const matchInst = instId ? item.institucion?.id == instId : true;
-      const nombreCompleto = `${item.nombre} ${item.apellido}`.toLowerCase();
-      const matchTexto = texto ? nombreCompleto.includes(texto) : true;
-      
-      return matchLocal && matchInst && matchTexto;
+    const filtrados = dataGlobal.filter(d => {
+      const matchLoc = loc ? d.institucion?.local_id == loc : true;
+      const matchInst = inst ? d.institucion?.id == inst : true;
+      const matchTxt = (d.nombre + ' ' + d.apellido).toLowerCase().includes(txt);
+      return matchLoc && matchInst && matchTxt;
     });
 
-    renderTabla(filtrados);
-    actualizarStats(filtrados);
+    renderTable(filtrados);
+    updateStats(filtrados);
   }
 
-  function renderTabla(datos) {
-    tbody.innerHTML = '';
-    if (datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No se encontraron registros</td></tr>';
-      return;
-    }
+  function renderTable(datos) {
+    tBody.innerHTML = '';
+    if(datos.length === 0) return tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin resultados</td></tr>';
 
     datos.forEach(d => {
-      // Formatear Acompañantes
-      const acompHTML = d.acompanantes && d.acompanantes.length > 0
-        ? d.acompanantes.map(a => `<span class="acomp-list-item">${a.nombre} ${a.apellido}</span>`).join('')
-        : '<span style="color:#999; font-size:0.8rem;">Sin acompañantes</span>';
-
-      // Formatear Mesas
-      const mesasHTML = d.alumno_mesas && d.alumno_mesas.length > 0
-        ? d.alumno_mesas.map(m => `<span class="badge-mesa">${m.mesa?.nombre}</span>`).join('')
-        : '<span style="color:#999; font-size:0.8rem;">Sin Mesa</span>';
+      // Mesas
+      const mesas = d.alumno_mesas.map(m => `<span class="badge-mesa">${m.mesa?.nombre || '?'}</span>`).join(' ');
+      // Acompañantes
+      const acomp = d.acompanantes.map(a => `<div>• ${a.nombre} ${a.apellido}</div>`).join('');
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>
-          <strong>${d.institucion?.local?.nombre || '-'}</strong><br>
-          <span style="color:var(--primary); font-size:0.9rem;">${d.institucion?.nombre || '-'}</span>
-        </td>
+        <td><strong>${d.institucion?.local?.nombre || '-'}</strong><br><small>${d.institucion?.nombre || '-'}</small></td>
         <td>${d.nombre} ${d.apellido}</td>
-        <td>${acompHTML}</td>
-        <td>${mesasHTML}</td>
-        <td class="no-print">
-          <button class="btn-primary btn-sm" onclick="abrirModalEditar(${d.id})">✏️ Editar</button>
-        </td>
+        <td style="font-size:0.85rem; color:#555;">${acomp || 'Sin acompañantes'}</td>
+        <td>${mesas || '<span style="color:#ccc">Sin mesa</span>'}</td>
+        <td class="no-print"><button class="btn-sm btn-outline" onclick="openModal(${d.id})">✏️ Editar</button></td>
       `;
-      tbody.appendChild(tr);
+      tBody.appendChild(tr);
     });
   }
 
-  function actualizarStats(datos) {
-    const totalAlumnos = datos.length;
-    const totalAcomp = datos.reduce((acc, d) => acc + (d.acompanantes?.length || 0), 0);
-    // Contar mesas únicas asignadas en este filtro es complejo, contaremos asignaciones totales
-    const totalMesas = datos.reduce((acc, d) => acc + (d.alumno_mesas?.length || 0), 0);
-
-    document.getElementById('stat-alumnos').textContent = totalAlumnos;
-    document.getElementById('stat-invitados').textContent = totalAlumnos + totalAcomp;
-    document.getElementById('stat-mesas').textContent = totalMesas;
+  function updateStats(datos) {
+    document.getElementById('stat-alumnos').textContent = datos.length;
+    const totalAcomp = datos.reduce((s, d) => s + d.acompanantes.length, 0);
+    document.getElementById('stat-invitados').textContent = datos.length + totalAcomp;
+    // Contar mesas únicas es complejo, mostramos asignaciones
+    document.getElementById('stat-mesas').textContent = datos.reduce((s, d) => s + d.alumno_mesas.length, 0);
   }
 
-  // --- FILTROS EN CASCADA ---
   async function cargarInstitucionesFiltro() {
-    const localId = filtroLocal.value;
+    const loc = filtroLocal.value;
     filtroInst.innerHTML = '<option value="">Todas</option>';
-    filtroInst.disabled = !localId;
-
-    if (localId) {
-      const { data } = await supabase.from('instituciones_educativas')
-        .select('id, nombre').eq('local_id', localId).order('nombre');
-      data.forEach(i => {
-        filtroInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`;
-      });
+    filtroInst.disabled = !loc;
+    if(loc) {
+      const {data} = await supabase.from('instituciones_educativas').select('*').eq('local_id', loc);
+      data.forEach(i => filtroInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
     }
     filtrarDatos();
   }
 
-  // --- LOGICA DEL MODAL (EDICIÓN) ---
-  function abrirModalEditar(id) {
-    const alumno = dataGlobal.find(d => d.id === id);
-    if (!alumno) return;
+  // --- MODAL LOGIC ---
+  function openModal(id) {
+    const al = dataGlobal.find(x => x.id === id);
+    if(!al) return;
 
-    document.getElementById('edit-alumno-id').value = alumno.id;
-    document.getElementById('edit-nombre').value = alumno.nombre;
-    document.getElementById('edit-apellido').value = alumno.apellido;
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-nombre').value = al.nombre;
+    document.getElementById('edit-apellido').value = al.apellido;
 
-    // 1. Generar Checkboxes Mesas
-    const containerMesas = document.getElementById('mesa-checkboxes');
-    containerMesas.innerHTML = '';
-    const mesasAsignadasIds = alumno.alumno_mesas.map(am => am.mesa.id);
+    // 1. Renderizar Mesas (Checkboxes)
+    const divMesas = document.getElementById('mesas-checkboxes');
+    divMesas.innerHTML = '';
     
-    mesasGlobal.forEach(m => {
-      const checked = mesasAsignadasIds.includes(m.id) ? 'checked' : '';
-      const div = document.createElement('label');
-      div.className = 'mesa-check';
-      div.innerHTML = `<input type="checkbox" value="${m.id}" ${checked}> ${m.nombre}`;
-      containerMesas.appendChild(div);
-    });
-
-    // 2. Generar Inputs Acompañantes
-    const containerAcomp = document.getElementById('edit-acompanantes-list');
-    containerAcomp.innerHTML = '';
-    editandoAcompanantesIds = [];
-
-    if (alumno.acompanantes && alumno.acompanantes.length > 0) {
-      alumno.acompanantes.forEach(a => {
-        editandoAcompanantesIds.push(a.id);
-        const div = document.createElement('div');
-        div.style.marginBottom = '5px';
-        div.style.display = 'flex';
-        div.style.gap = '5px';
-        div.innerHTML = `
-          <input type="text" class="edit-acomp-nombre" data-id="${a.id}" value="${a.nombre}" placeholder="Nombre">
-          <input type="text" class="edit-acomp-apellido" data-id="${a.id}" value="${a.apellido}" placeholder="Apellido">
-        `;
-        containerAcomp.appendChild(div);
-      });
+    if(mesasGlobal.length === 0) {
+      divMesas.innerHTML = '<p style="color:#d97706; font-size:0.9rem;">⚠ No hay mesas creadas. Crea una en el panel principal.</p>';
     } else {
-      containerAcomp.innerHTML = '<p style="font-size:0.8rem; color:#666">Este alumno no tiene acompañantes registrados.</p>';
+      const asignadas = al.alumno_mesas.map(m => m.mesa.id);
+      mesasGlobal.forEach(m => {
+        const checked = asignadas.includes(m.id) ? 'checked' : '';
+        divMesas.innerHTML += `
+          <label class="mesa-check">
+            <input type="checkbox" value="${m.id}" ${checked}> ${m.nombre}
+          </label>`;
+      });
     }
+
+    // 2. Renderizar Acompañantes
+    const divAcomp = document.getElementById('edit-acompanantes-container');
+    divAcomp.innerHTML = '';
+    al.acompanantes.forEach(ac => {
+      divAcomp.innerHTML += `
+        <div style="display:flex; gap:5px; margin-bottom:5px;">
+          <input type="hidden" class="edit-ac-id" value="${ac.id}">
+          <input type="text" class="edit-ac-nom" value="${ac.nombre}">
+          <input type="text" class="edit-ac-ape" value="${ac.apellido}">
+        </div>
+      `;
+    });
 
     document.getElementById('modal-editar').classList.add('active');
   }
 
-  function cerrarModal() {
+  function closeModal() {
     document.getElementById('modal-editar').classList.remove('active');
   }
 
-  async function guardarEdicion() {
-    const alumnoId = document.getElementById('edit-alumno-id').value;
-    const nombre = document.getElementById('edit-nombre').value;
-    const apellido = document.getElementById('edit-apellido').value;
+  async function guardarCambios() {
+    const id = document.getElementById('edit-id').value;
+    const nom = document.getElementById('edit-nombre').value;
+    const ape = document.getElementById('edit-apellido').value;
 
-    // 1. Actualizar Alumno
-    const { error: errAl } = await supabase.from('alumnos')
-      .update({ nombre, apellido }).eq('id', alumnoId);
-    
-    if (errAl) return alert('Error guardando alumno');
+    // Update Alumno
+    await supabase.from('alumnos').update({nombre:nom, apellido:ape}).eq('id', id);
 
-    // 2. Actualizar Acompañantes
-    const inputsN = document.querySelectorAll('.edit-acomp-nombre');
-    const inputsA = document.querySelectorAll('.edit-acomp-apellido');
+    // Update Acompañantes
+    const ids = document.querySelectorAll('.edit-ac-id');
+    const noms = document.querySelectorAll('.edit-ac-nom');
+    const apes = document.querySelectorAll('.edit-ac-ape');
     
-    for (let i = 0; i < inputsN.length; i++) {
-      const aId = inputsN[i].dataset.id;
-      const nVal = inputsN[i].value;
-      const aVal = inputsA[i].value;
-      // Actualizar cada acompañante
-      await supabase.from('acompanantes').update({ nombre: nVal, apellido: aVal }).eq('id', aId);
+    for(let i=0; i<ids.length; i++) {
+      await supabase.from('acompanantes').update({
+        nombre: noms[i].value, apellido: apes[i].value
+      }).eq('id', ids[i].value);
     }
 
-    // 3. Actualizar Mesas (Borrar y Reinsertar strategy es más segura para N:M)
-    // Obtener seleccionadas
-    const checks = document.querySelectorAll('#mesa-checkboxes input:checked');
-    const nuevasMesasIds = Array.from(checks).map(c => parseInt(c.value));
-
-    // Borrar previas
-    await supabase.from('alumno_mesas').delete().eq('alumno_id', alumnoId);
+    // Update Mesas (Delete + Insert)
+    const checks = document.querySelectorAll('#mesas-checkboxes input:checked');
+    await supabase.from('alumno_mesas').delete().eq('alumno_id', id);
     
-    // Insertar nuevas
-    if (nuevasMesasIds.length > 0) {
-      const inserts = nuevasMesasIds.map(mId => ({ alumno_id: alumnoId, mesa_id: mId }));
+    if(checks.length > 0) {
+      const inserts = Array.from(checks).map(c => ({
+        alumno_id: id, mesa_id: parseInt(c.value)
+      }));
       await supabase.from('alumno_mesas').insert(inserts);
     }
 
     alert('Cambios guardados');
-    cerrarModal();
-    cargarDatos(); // Recargar tabla
+    closeModal();
+    cargarDatos();
   }
-
-  // --- FUNCIONES AGREGAR RAPIDO ---
-  function toggleAddForm() {
-    const f = document.getElementById('add-data-form');
-    f.style.display = f.style.display === 'none' ? 'block' : 'none';
-  }
-
-  async function agregarLocal() {
-    const n = document.getElementById('new-local-name').value;
-    if(!n) return;
-    await supabase.from('locales').insert([{nombre:n}]);
-    alert('Local agregado');
-    cargarLocales();
-  }
-
-  async function agregarInstitucion() {
-    const l = document.getElementById('select-local-add').value;
-    const n = document.getElementById('new-inst-name').value;
-    if(!l || !n) return alert('Faltan datos');
-    await supabase.from('instituciones_educativas').insert([{nombre:n, local_id:l}]);
-    alert('Institución agregada');
-    location.reload(); // Recarga para actualizar selects
-  }
-
 </script>
 </body>
 </html>
