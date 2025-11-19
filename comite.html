@@ -3,233 +3,266 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registro de Evento - Comité</title>
+  <title>Admin Dashboard - Eventos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-dark: #1e40af;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-light: #64748b;
-      --border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #1f2937;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
       --success: #10b981;
-      --danger: #ef4444;
+      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; }
 
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--bg-color);
+      background-color: var(--bg-body);
       color: var(--text-main);
       margin: 0;
-      padding: 2rem 1rem;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      padding: 0;
     }
 
-    .main-card {
-      background: var(--card-bg);
-      width: 100%;
-      max-width: 800px;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* LAYOUT PRINCIPAL */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 2rem;
     }
 
-    h1 { margin: 0 0 0.5rem 0; text-align: center; color: var(--primary); }
-    p.subtitle { text-align: center; color: var(--text-light); margin-bottom: 2rem; }
+    h1 { color: var(--primary); margin-bottom: 1.5rem; }
 
-    /* Formularios */
-    .form-group { margin-bottom: 1.5rem; }
-    label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    input, select {
-      width: 100%; padding: 0.75rem; border: 1px solid var(--border);
-      border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.2s;
+    /* STATS CARDS (KPIs) */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .stat-card {
+      background: var(--bg-card);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-left: 5px solid var(--primary);
+    }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+    .stat-label { color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    /* PANELES DE ACCIÓN */
+    .action-panel {
+      background: var(--bg-card);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .panel-title { font-size: 1.1rem; font-weight: 600; color: var(--primary-dark); margin: 0; }
 
-    /* Botones */
-    .btn {
-      width: 100%; padding: 0.75rem; border: none; border-radius: 8px;
-      font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1rem;
+    /* FORMULARIOS Y FILTROS */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      align-items: end;
+    }
+
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-main); }
+    
+    input, select {
+      width: 100%; padding: 0.6rem; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 0.95rem; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+    button {
+      padding: 0.6rem 1.2rem; border: none; border-radius: 6px;
+      font-weight: 600; cursor: pointer; transition: 0.2s;
     }
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-dark); }
-    .btn-success { background: var(--success); color: white; }
-    .btn-secondary { background: #f1f5f9; color: var(--text-main); width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;}
-    .btn-danger { background: #fee2e2; color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem;}
+    .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+    .btn-outline:hover { background: #eef2ff; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 
-    /* TARJETA DE ALUMNO - ESTILO JERÁRQUICO */
-    .alumno-card {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      background: white;
-      position: relative;
-      border-left: 5px solid var(--primary); /* Línea visual izquierda */
-    }
+    /* TABLA DE DATOS */
+    .table-responsive { overflow-x: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     
-    .alumno-header {
-      font-weight: 700; color: var(--primary); margin-bottom: 1rem;
-      text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
-    }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th { background: var(--primary); color: white; padding: 1rem; text-align: left; font-weight: 600; white-space: nowrap; }
+    td { padding: 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:hover { background-color: #f9fafb; }
 
-    /* SECCIÓN ACOMPAÑANTES (JERARQUÍA) */
-    .acompanantes-section {
-      margin-top: 1.2rem;
-      padding-left: 1.5rem; /* Indentación */
-      border-left: 2px dashed #cbd5e1; /* Línea guía punteada vertical */
-      margin-left: 0.5rem;
+    /* Badges */
+    .badge-mesa {
+      display: inline-block; background: #e0e7ff; color: var(--primary-dark);
+      padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin: 2px;
     }
+    .acomp-list-item { font-size: 0.85rem; color: var(--text-light); display: block; margin-top: 2px; }
+    .acomp-list-item::before { content: "• "; color: var(--primary); }
+
+    /* MODAL EDITAR */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
     
-    .acomp-title {
-      font-size: 0.85rem; font-weight: bold; color: var(--text-light);
-      margin-bottom: 0.8rem; display: flex; align-items: center;
+    .modal-content {
+      background: white; width: 90%; max-width: 600px; padding: 2rem;
+      border-radius: 12px; position: relative; max-height: 90vh; overflow-y: auto;
     }
-    .acomp-title::before {
-      content: "↳"; /* Símbolo de jerarquía */
-      margin-right: 6px; font-size: 1.2rem; color: #cbd5e1;
+    .close-modal { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #999; }
+
+    .mesa-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem;
+      margin-top: 0.5rem; max-height: 150px; overflow-y: auto; border: 1px solid var(--border); padding: 0.5rem;
     }
-
-    .acomp-row {
-      display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;
-      position: relative;
+    .mesa-check {
+      display: flex; align-items: center; font-size: 0.85rem; cursor: pointer;
+      background: #f3f4f6; padding: 4px; border-radius: 4px;
     }
-    /* Guion visual para cada item */
-    .acomp-row::before {
-      content: "-";
-      position: absolute; left: -15px; color: var(--text-light); font-weight: bold;
-    }
+    .mesa-check input { width: auto; margin-right: 6px; }
 
-    .acomp-row input { padding: 0.5rem; font-size: 0.9rem; background: #f8fafc; }
-
-    /* Utilidades */
-    .hidden { display: none; }
-    #message { margin-top: 1rem; text-align: center; padding: 0.8rem; border-radius: 6px; font-weight: 600; }
-    .msg-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
-    .msg-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-
-    /* =========================================
-       ESTILOS DE IMPRESIÓN (VOUCHER JERÁRQUICO)
-       ========================================= */
-    #print-area { display: none; }
-
+    /* IMPRESIÓN */
     @media print {
       body { background: white; padding: 0; }
-      .main-card, .no-print { display: none !important; }
-      #print-area {
-        display: block; width: 100%; max-width: 400px; /* Ancho ticket */
-        margin: 0 auto; font-family: 'Courier New', monospace;
-        color: black; padding: 10px;
-      }
-      .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
-      .ticket-header h2 { font-size: 1.2rem; margin: 5px 0; }
-      .ticket-info p { margin: 3px 0; font-size: 0.9rem; }
-      
-      /* Lista Jerárquica en Impresión */
-      .print-list { width: 100%; border-top: 1px solid #000; margin-top: 10px; padding-top: 10px; }
-      
-      .print-item-alumno {
-        margin-top: 15px;
-        font-weight: bold;
-        font-size: 1rem;
-        text-transform: uppercase;
-      }
-      
-      .print-item-acomp {
-        margin-left: 20px; /* Sangría para acompañante */
-        font-size: 0.9rem;
-        margin-top: 2px;
-        font-weight: normal;
-        text-transform: capitalize;
-      }
-      .print-item-acomp::before {
-        content: "- "; /* Guion forzado */
-      }
-
-      .ticket-total { margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; text-align: right; font-weight: bold; }
-      .ticket-footer { margin-top: 30px; text-align: center; font-size: 0.8rem; }
+      .no-print, .action-panel, .stats-grid, .modal-overlay { display: none !important; }
+      .container { max-width: 100%; padding: 0; }
+      table { box-shadow: none; border: 1px solid #000; }
+      th, td { border: 1px solid #000; color: black; }
+      th { background: #eee !important; color: black; }
+      h1 { text-align: center; font-size: 18px; margin: 10px 0; }
     }
   </style>
 </head>
 <body>
 
-  <div class="main-card">
-    <h1>Registro de Ingreso</h1>
-    <p class="subtitle">Sistema de Control</p>
+<div class="container">
+  <h1 class="no-print">Panel de Administración</h1>
 
-    <div id="pantalla1">
-      <div class="form-group">
-        <label>Local</label>
-        <select id="local-select"><option value="">Cargando...</option></select>
+  <section class="stats-grid no-print">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-alumnos">0</div>
+      <div class="stat-label">Total Alumnos</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--success);">
+      <div class="stat-value" id="stat-invitados">0</div>
+      <div class="stat-label">Total Personas (Inc. Acomp)</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--warning);">
+      <div class="stat-value" id="stat-mesas">0</div>
+      <div class="stat-label">Mesas Asignadas</div>
+    </div>
+  </section>
+
+  <section class="action-panel no-print">
+    <div class="panel-header">
+      <h3 class="panel-title">Gestión y Filtros</h3>
+      <div>
+        <button class="btn-outline btn-sm" onclick="toggleAddForm()">+ Nuevo Local/Institución</button>
+        <button class="btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir Reporte</button>
       </div>
-      <div class="form-group">
-        <label>Institución Educativa</label>
-        <div class="row-grid">
-          <select id="institucion-select" class="hidden"></select>
-          <input type="text" id="institucion-input" placeholder="Nombre de la institución">
+    </div>
+
+    <div id="add-data-form" style="display:none; background:#f9fafb; padding:1rem; border-radius:8px; margin-bottom:1rem;">
+      <div class="controls-grid">
+        <div>
+          <label>Nuevo Local</label>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="text" id="new-local-name" placeholder="Nombre Local">
+            <button class="btn-primary btn-sm" onclick="agregarLocal()">Guardar</button>
+          </div>
+        </div>
+        <div>
+          <label>Nueva Institución</label>
+          <div style="display:flex; gap:0.5rem;">
+            <select id="select-local-add"><option>Cargando...</option></select>
+            <input type="text" id="new-inst-name" placeholder="Nombre Inst.">
+            <button class="btn-primary btn-sm" onclick="agregarInstitucion()">Guardar</button>
+          </div>
         </div>
       </div>
-      <div class="form-group">
-        <label>Cantidad de Alumnos</label>
-        <input type="number" id="numero-alumnos" min="1" value="1">
-      </div>
-      <button id="btn-siguiente" class="btn btn-primary">Siguiente</button>
     </div>
 
-    <div id="pantalla2" class="hidden">
-      <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
-        <h3 style="margin:0;">Datos de Asistentes</h3>
-        <button id="btn-volver" class="btn btn-secondary">Atrás</button>
+    <div class="controls-grid">
+      <div>
+        <label>Filtrar por Local</label>
+        <select id="filtro-local" onchange="cargarInstitucionesFiltro()"><option value="">Todos</option></select>
       </div>
-      
-      <div id="alumnos-container"></div>
-      
-      <div id="message"></div>
-      
-      <button id="btn-guardar" class="btn btn-success" style="margin-top:1.5rem;">Guardar Registro</button>
+      <div>
+        <label>Filtrar por Institución</label>
+        <select id="filtro-institucion" disabled onchange="filtrarDatos()"><option value="">Todas</option></select>
+      </div>
+      <div>
+        <label>Buscar Alumno</label>
+        <input type="text" id="busqueda-texto" placeholder="Escribe nombre..." onkeyup="filtrarDatos()">
+      </div>
+    </div>
+  </section>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Institución / Local</th>
+          <th>Alumno</th>
+          <th>Acompañantes</th>
+          <th>Mesas</th>
+          <th class="no-print">Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-body">
+        </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal-content">
+    <span class="close-modal" onclick="cerrarModal()">&times;</span>
+    <h2 style="margin-top:0; color:var(--primary);">Editar Asistente</h2>
+    <input type="hidden" id="edit-alumno-id">
+
+    <div class="controls-grid" style="margin-bottom:1rem;">
+      <div>
+        <label>Nombre</label>
+        <input type="text" id="edit-nombre">
+      </div>
+      <div>
+        <label>Apellido</label>
+        <input type="text" id="edit-apellido">
+      </div>
     </div>
 
-    <div id="pantalla3" class="hidden" style="text-align:center;">
-      <h2 style="color:var(--success);">¡Registro Exitoso!</h2>
-      <p>Se ha bloqueado la institución para evitar duplicados.</p>
-      <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir Ticket</button>
-      <br><br>
-      <button onclick="location.reload()" class="btn btn-secondary">Nuevo Registro (Reiniciar)</button>
+    <div style="margin-bottom:1rem;">
+      <label>Asignar Mesas</label>
+      <div class="mesa-grid" id="mesa-checkboxes">
+        </div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <label>Acompañantes (Editar nombres)</label>
+      <div id="edit-acompanantes-list">
+        </div>
+    </div>
+
+    <div style="text-align:right; margin-top:1.5rem;">
+      <button class="btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarEdicion()">Guardar Cambios</button>
     </div>
   </div>
-
-  <div id="print-area">
-    <div class="ticket-header">
-      <h2>TICKET DE INGRESO</h2>
-      <p id="print-fecha"></p>
-    </div>
-    <div class="ticket-info">
-      <p><strong>Local:</strong> <span id="print-local"></span></p>
-      <p><strong>Institución:</strong> <span id="print-institucion"></span></p>
-      <p><strong>Código:</strong> <span id="print-id"></span></p>
-    </div>
-
-    <div id="print-lista" class="print-list"></div>
-
-    <div class="ticket-total">
-      TOTAL PERSONAS: <span id="print-total">0</span>
-    </div>
-    
-    <div class="ticket-footer">
-      <p>_______________________<br>Firma Conformidad</p>
-    </div>
-  </div>
+</div>
 
 <script>
   const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
@@ -237,230 +270,265 @@
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Elementos
-  const localSelect = document.getElementById('local-select');
-  const instSelect = document.getElementById('institucion-select');
-  const instInput = document.getElementById('institucion-input');
-  const container = document.getElementById('alumnos-container');
-  const msg = document.getElementById('message');
+  // Estado Global
+  let dataGlobal = [];
+  let mesasGlobal = [];
+  let localesGlobal = [];
+  let editandoAcompanantesIds = []; // Para trackear IDs en el modal
 
-  let alumnosData = [];
-  let sesion = {};
+  // DOM Elements
+  const filtroLocal = document.getElementById('filtro-local');
+  const filtroInst = document.getElementById('filtro-institucion');
+  const busquedaInput = document.getElementById('busqueda-texto');
+  const tbody = document.getElementById('tabla-body');
+  
+  // Inicialización
+  init();
 
-  // 1. Carga Inicial
+  async function init() {
+    await Promise.all([cargarLocales(), cargarMesas()]);
+    await cargarDatos(); // Carga inicial de todo
+  }
+
+  // --- CARGA DE DATOS MAESTROS ---
   async function cargarLocales() {
     const { data } = await supabase.from('locales').select('*').order('nombre');
-    localSelect.innerHTML = '<option value="">-- Selecciona --</option>';
-    data?.forEach(l => localSelect.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
-  }
-  cargarLocales();
-
-  localSelect.addEventListener('change', async () => {
-    instSelect.classList.add('hidden');
-    instInput.style.display = 'block';
-    instInput.value = '';
-    if(!localSelect.value) return;
+    localesGlobal = data || [];
     
-    const { data } = await supabase.from('instituciones_educativas')
-      .select('*').eq('local_id', localSelect.value).order('nombre');
+    // Llenar select filtros y select agregar
+    const opciones = `<option value="">Todos / Seleccionar</option>` + 
+      localesGlobal.map(l => `<option value="${l.id}">${l.nombre}</option>`).join('');
     
-    if(data.length > 0){
-      instSelect.classList.remove('hidden');
-      instInput.style.display = 'none';
-      instSelect.innerHTML = '<option value="">-- Selecciona --</option><option value="nueva">+ Nueva...</option>';
-      data.forEach(i => instSelect.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
-    }
-  });
-
-  instSelect.addEventListener('change', () => {
-    instInput.style.display = (instSelect.value === 'nueva') ? 'block' : 'none';
-    if(instSelect.value === 'nueva') instInput.focus();
-  });
-
-  // 2. Navegación
-  document.getElementById('btn-siguiente').addEventListener('click', () => {
-    const cant = parseInt(document.getElementById('numero-alumnos').value);
-    if(!localSelect.value) return alert('Selecciona local');
-    if(cant < 1) return alert('Mínimo 1 alumno');
-    
-    sesion = {
-      localId: localSelect.value,
-      instId: (instSelect.value && instSelect.value !== 'nueva') ? instSelect.value : null,
-      instNombre: instInput.value || instSelect.options[instSelect.selectedIndex].text,
-      cantidad: cant
-    };
-    
-    renderFormulario(cant);
-    document.getElementById('pantalla1').classList.add('hidden');
-    document.getElementById('pantalla2').classList.remove('hidden');
-  });
-
-  document.getElementById('btn-volver').addEventListener('click', () => {
-    document.getElementById('pantalla2').classList.add('hidden');
-    document.getElementById('pantalla1').classList.remove('hidden');
-  });
-
-  // 3. Renderizado con Diseño Jerárquico
-  function renderFormulario(n) {
-    container.innerHTML = '';
-    alumnosData = [];
-    for(let i=0; i<n; i++){
-      alumnosData.push({ nombre: '', apellido: '', acompanantes: [] });
-      
-      const div = document.createElement('div');
-      div.className = 'alumno-card';
-      div.innerHTML = `
-        <div class="alumno-header">Alumno #${i+1} (Principal)</div>
-        <div class="row-grid">
-          <input type="text" placeholder="Nombre Alumno" oninput="updAlumno(${i}, 'nombre', this.value)">
-          <input type="text" placeholder="Apellido Alumno" oninput="updAlumno(${i}, 'apellido', this.value)">
-        </div>
-        
-        <div class="acompanantes-section">
-          <div class="acomp-title">Acompañantes (Dependientes)</div>
-          <div id="list-acomp-${i}"></div>
-          <button class="btn btn-secondary" style="font-size:0.8rem; margin-top:5px;" onclick="addAcomp(${i})">+ Agregar Acompañante</button>
-        </div>
-      `;
-      container.appendChild(div);
-    }
+    filtroLocal.innerHTML = opciones;
+    document.getElementById('select-local-add').innerHTML = opciones;
   }
 
-  window.updAlumno = (i, field, val) => alumnosData[i][field] = val;
+  async function cargarMesas() {
+    const { data } = await supabase.from('mesas').select('*').order('nombre');
+    mesasGlobal = data || [];
+  }
 
-  window.addAcomp = (i) => {
-    const idxAcomp = alumnosData[i].acompanantes.length;
-    alumnosData[i].acompanantes.push({ nombre:'', apellido:'' });
+  // --- CARGA DE DATOS PRINCIPAL ---
+  async function cargarDatos() {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Cargando datos...</td></tr>';
     
-    const row = document.createElement('div');
-    row.className = 'acomp-row';
-    row.innerHTML = `
-      <input type="text" placeholder="Nombre" oninput="updAcomp(${i}, ${idxAcomp}, 'nombre', this.value)">
-      <input type="text" placeholder="Apellido" oninput="updAcomp(${i}, ${idxAcomp}, 'apellido', this.value)">
-      <button class="btn btn-danger" onclick="this.parentElement.remove(); delAcomp(${i}, ${idxAcomp})">X</button>
-    `;
-    document.getElementById(`list-acomp-${i}`).appendChild(row);
-  };
+    let query = supabase.from('alumnos')
+      .select(`
+        id, nombre, apellido, institucion_id,
+        institucion:instituciones_educativas (id, nombre, local_id, local:locales(nombre)),
+        acompanantes (id, nombre, apellido),
+        alumno_mesas (mesa:mesas(id, nombre))
+      `)
+      .order('id', { ascending: false }); // Más recientes primero
 
-  window.updAcomp = (i, j, field, val) => {
-    if(alumnosData[i].acompanantes[j]) alumnosData[i].acompanantes[j][field] = val;
-  };
-  
-  window.delAcomp = (i, j) => {
-    // Marcamos como null para filtrar al guardar
-    alumnosData[i].acompanantes[j] = null;
-  };
-
-  // 4. Guardado con Validación de Duplicados
-  document.getElementById('btn-guardar').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-guardar');
-    msg.textContent = '';
-    msg.className = '';
-
-    // Validar campos vacíos
-    if(alumnosData.some(a => !a.nombre || !a.apellido)) {
-      msg.textContent = 'Todos los alumnos deben tener nombre y apellido.';
-      msg.className = 'msg-error';
+    const { data, error } = await query;
+    
+    if (error) {
+      alert('Error: ' + error.message);
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Verificando...';
+    dataGlobal = data;
+    filtrarDatos(); // Renderizar con filtros actuales (vacíos al inicio)
+  }
 
-    try {
-      // A. Resolver ID de Institución
-      let finalInstId = sesion.instId;
-      if(!finalInstId) {
-        // Buscar si existe por nombre
-        const { data: existe } = await supabase.from('instituciones_educativas')
-          .select('id').ilike('nombre', sesion.instNombre.trim()).maybeSingle();
-        
-        if(existe) finalInstId = existe.id;
-        else {
-          const { data: nueva } = await supabase.from('instituciones_educativas')
-            .insert([{ nombre: sesion.instNombre.trim(), local_id: sesion.localId }]).select().single();
-          finalInstId = nueva.id;
-        }
-      }
+  function filtrarDatos() {
+    const localId = filtroLocal.value;
+    const instId = filtroInst.value;
+    const texto = busquedaInput.value.toLowerCase();
 
-      // B. VERIFICACIÓN DE DUPLICADOS (Crucial)
-      const { data: duplicado } = await supabase.from('registros_comite')
-        .select('id')
-        .eq('institucion_id', finalInstId)
-        .maybeSingle();
-
-      if (duplicado) {
-        throw new Error('¡ALERTA! Esta institución YA FUE REGISTRADA anteriormente. No se puede volver a ingresar.');
-      }
-
-      // C. Guardar Datos
-      btn.textContent = 'Guardando...';
+    // Filtrado en cliente (más rápido para < 1000 registros)
+    const filtrados = dataGlobal.filter(item => {
+      const matchLocal = localId ? item.institucion?.local_id == localId : true;
+      const matchInst = instId ? item.institucion?.id == instId : true;
+      const nombreCompleto = `${item.nombre} ${item.apellido}`.toLowerCase();
+      const matchTexto = texto ? nombreCompleto.includes(texto) : true;
       
-      const { data: reg } = await supabase.from('registros_comite')
-        .insert([{ local_id: sesion.localId, institucion_id: finalInstId, numero_alumnos: sesion.cantidad }])
-        .select().single();
-
-      for(const alum of alumnosData) {
-        const { data: alumDb } = await supabase.from('alumnos')
-          .insert([{ nombre: alum.nombre, apellido: alum.apellido, institucion_id: finalInstId }])
-          .select().single();
-          
-        await supabase.from('registro_alumnos').insert([{ registro_comite_id: reg.id, alumno_id: alumDb.id }]);
-
-        const validAcomps = alum.acompanantes.filter(a => a !== null && a.nombre);
-        if(validAcomps.length > 0) {
-          await supabase.from('acompanantes').insert(
-            validAcomps.map(a => ({ nombre: a.nombre, apellido: a.apellido, alumno_id: alumDb.id }))
-          );
-        }
-      }
-
-      // D. Preparar Ticket Jerárquico
-      prepararTicket(finalInstId, reg.id);
-      document.getElementById('pantalla2').classList.add('hidden');
-      document.getElementById('pantalla3').classList.remove('hidden');
-
-    } catch (e) {
-      msg.textContent = e.message;
-      msg.className = 'msg-error';
-      btn.disabled = false;
-      btn.textContent = 'Guardar Registro';
-    }
-  });
-
-  function prepararTicket(instId, regId) {
-    // Datos cabecera
-    document.getElementById('print-fecha').textContent = new Date().toLocaleString();
-    document.getElementById('print-local').textContent = localSelect.options[localSelect.selectedIndex].text;
-    document.getElementById('print-institucion').textContent = sesion.instNombre;
-    document.getElementById('print-id').textContent = '#' + regId;
-
-    // Generar Lista Jerárquica
-    const listaDiv = document.getElementById('print-lista');
-    listaDiv.innerHTML = '';
-    let total = 0;
-
-    alumnosData.forEach(alum => {
-      total++;
-      // 1. Alumno (Padre)
-      const divAlum = document.createElement('div');
-      divAlum.className = 'print-item-alumno';
-      divAlum.textContent = `• ${alum.nombre} ${alum.apellido}`;
-      listaDiv.appendChild(divAlum);
-
-      // 2. Acompañantes (Hijos con guiones)
-      const acomps = alum.acompanantes.filter(a => a!==null && a.nombre);
-      acomps.forEach(ac => {
-        total++;
-        const divAc = document.createElement('div');
-        divAc.className = 'print-item-acomp';
-        divAc.textContent = `${ac.nombre} ${ac.apellido}`; // El CSS agrega el guion "- "
-        listaDiv.appendChild(divAc);
-      });
+      return matchLocal && matchInst && matchTexto;
     });
 
-    document.getElementById('print-total').textContent = total;
+    renderTabla(filtrados);
+    actualizarStats(filtrados);
   }
+
+  function renderTabla(datos) {
+    tbody.innerHTML = '';
+    if (datos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No se encontraron registros</td></tr>';
+      return;
+    }
+
+    datos.forEach(d => {
+      // Formatear Acompañantes
+      const acompHTML = d.acompanantes && d.acompanantes.length > 0
+        ? d.acompanantes.map(a => `<span class="acomp-list-item">${a.nombre} ${a.apellido}</span>`).join('')
+        : '<span style="color:#999; font-size:0.8rem;">Sin acompañantes</span>';
+
+      // Formatear Mesas
+      const mesasHTML = d.alumno_mesas && d.alumno_mesas.length > 0
+        ? d.alumno_mesas.map(m => `<span class="badge-mesa">${m.mesa?.nombre}</span>`).join('')
+        : '<span style="color:#999; font-size:0.8rem;">Sin Mesa</span>';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <strong>${d.institucion?.local?.nombre || '-'}</strong><br>
+          <span style="color:var(--primary); font-size:0.9rem;">${d.institucion?.nombre || '-'}</span>
+        </td>
+        <td>${d.nombre} ${d.apellido}</td>
+        <td>${acompHTML}</td>
+        <td>${mesasHTML}</td>
+        <td class="no-print">
+          <button class="btn-primary btn-sm" onclick="abrirModalEditar(${d.id})">✏️ Editar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function actualizarStats(datos) {
+    const totalAlumnos = datos.length;
+    const totalAcomp = datos.reduce((acc, d) => acc + (d.acompanantes?.length || 0), 0);
+    // Contar mesas únicas asignadas en este filtro es complejo, contaremos asignaciones totales
+    const totalMesas = datos.reduce((acc, d) => acc + (d.alumno_mesas?.length || 0), 0);
+
+    document.getElementById('stat-alumnos').textContent = totalAlumnos;
+    document.getElementById('stat-invitados').textContent = totalAlumnos + totalAcomp;
+    document.getElementById('stat-mesas').textContent = totalMesas;
+  }
+
+  // --- FILTROS EN CASCADA ---
+  async function cargarInstitucionesFiltro() {
+    const localId = filtroLocal.value;
+    filtroInst.innerHTML = '<option value="">Todas</option>';
+    filtroInst.disabled = !localId;
+
+    if (localId) {
+      const { data } = await supabase.from('instituciones_educativas')
+        .select('id, nombre').eq('local_id', localId).order('nombre');
+      data.forEach(i => {
+        filtroInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`;
+      });
+    }
+    filtrarDatos();
+  }
+
+  // --- LOGICA DEL MODAL (EDICIÓN) ---
+  function abrirModalEditar(id) {
+    const alumno = dataGlobal.find(d => d.id === id);
+    if (!alumno) return;
+
+    document.getElementById('edit-alumno-id').value = alumno.id;
+    document.getElementById('edit-nombre').value = alumno.nombre;
+    document.getElementById('edit-apellido').value = alumno.apellido;
+
+    // 1. Generar Checkboxes Mesas
+    const containerMesas = document.getElementById('mesa-checkboxes');
+    containerMesas.innerHTML = '';
+    const mesasAsignadasIds = alumno.alumno_mesas.map(am => am.mesa.id);
+    
+    mesasGlobal.forEach(m => {
+      const checked = mesasAsignadasIds.includes(m.id) ? 'checked' : '';
+      const div = document.createElement('label');
+      div.className = 'mesa-check';
+      div.innerHTML = `<input type="checkbox" value="${m.id}" ${checked}> ${m.nombre}`;
+      containerMesas.appendChild(div);
+    });
+
+    // 2. Generar Inputs Acompañantes
+    const containerAcomp = document.getElementById('edit-acompanantes-list');
+    containerAcomp.innerHTML = '';
+    editandoAcompanantesIds = [];
+
+    if (alumno.acompanantes && alumno.acompanantes.length > 0) {
+      alumno.acompanantes.forEach(a => {
+        editandoAcompanantesIds.push(a.id);
+        const div = document.createElement('div');
+        div.style.marginBottom = '5px';
+        div.style.display = 'flex';
+        div.style.gap = '5px';
+        div.innerHTML = `
+          <input type="text" class="edit-acomp-nombre" data-id="${a.id}" value="${a.nombre}" placeholder="Nombre">
+          <input type="text" class="edit-acomp-apellido" data-id="${a.id}" value="${a.apellido}" placeholder="Apellido">
+        `;
+        containerAcomp.appendChild(div);
+      });
+    } else {
+      containerAcomp.innerHTML = '<p style="font-size:0.8rem; color:#666">Este alumno no tiene acompañantes registrados.</p>';
+    }
+
+    document.getElementById('modal-editar').classList.add('active');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-editar').classList.remove('active');
+  }
+
+  async function guardarEdicion() {
+    const alumnoId = document.getElementById('edit-alumno-id').value;
+    const nombre = document.getElementById('edit-nombre').value;
+    const apellido = document.getElementById('edit-apellido').value;
+
+    // 1. Actualizar Alumno
+    const { error: errAl } = await supabase.from('alumnos')
+      .update({ nombre, apellido }).eq('id', alumnoId);
+    
+    if (errAl) return alert('Error guardando alumno');
+
+    // 2. Actualizar Acompañantes
+    const inputsN = document.querySelectorAll('.edit-acomp-nombre');
+    const inputsA = document.querySelectorAll('.edit-acomp-apellido');
+    
+    for (let i = 0; i < inputsN.length; i++) {
+      const aId = inputsN[i].dataset.id;
+      const nVal = inputsN[i].value;
+      const aVal = inputsA[i].value;
+      // Actualizar cada acompañante
+      await supabase.from('acompanantes').update({ nombre: nVal, apellido: aVal }).eq('id', aId);
+    }
+
+    // 3. Actualizar Mesas (Borrar y Reinsertar strategy es más segura para N:M)
+    // Obtener seleccionadas
+    const checks = document.querySelectorAll('#mesa-checkboxes input:checked');
+    const nuevasMesasIds = Array.from(checks).map(c => parseInt(c.value));
+
+    // Borrar previas
+    await supabase.from('alumno_mesas').delete().eq('alumno_id', alumnoId);
+    
+    // Insertar nuevas
+    if (nuevasMesasIds.length > 0) {
+      const inserts = nuevasMesasIds.map(mId => ({ alumno_id: alumnoId, mesa_id: mId }));
+      await supabase.from('alumno_mesas').insert(inserts);
+    }
+
+    alert('Cambios guardados');
+    cerrarModal();
+    cargarDatos(); // Recargar tabla
+  }
+
+  // --- FUNCIONES AGREGAR RAPIDO ---
+  function toggleAddForm() {
+    const f = document.getElementById('add-data-form');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function agregarLocal() {
+    const n = document.getElementById('new-local-name').value;
+    if(!n) return;
+    await supabase.from('locales').insert([{nombre:n}]);
+    alert('Local agregado');
+    cargarLocales();
+  }
+
+  async function agregarInstitucion() {
+    const l = document.getElementById('select-local-add').value;
+    const n = document.getElementById('new-inst-name').value;
+    if(!l || !n) return alert('Faltan datos');
+    await supabase.from('instituciones_educativas').insert([{nombre:n, local_id:l}]);
+    alert('Institución agregada');
+    location.reload(); // Recarga para actualizar selects
+  }
+
 </script>
 </body>
 </html>
