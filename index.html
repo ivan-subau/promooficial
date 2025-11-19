@@ -2,530 +2,465 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Comité - Registro de Alumnos y Acompañantes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Evento - Comité</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
   <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 700px;
-      margin: 1rem auto;
-      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-      padding: 1.5rem;
-      border-radius: 15px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-      color: #333333;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 2rem 1rem;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
+      justify-content: center;
+      align-items: flex-start;
     }
-    h1, h2 {
-      text-align: center;
-      color: #154360;
-      margin-bottom: 1.5rem;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 1rem;
-      margin-bottom: 0.3rem;
-      color: #1b4f72;
-    }
-    select, input {
+
+    .main-card {
+      background: var(--card-bg);
       width: 100%;
-      padding: 0.6rem 0.9rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1.5px solid #a3c4f3;
-      transition: border-color 0.3s ease;
-      background-color: white;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      max-width: 800px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
     }
-    select:focus, input:focus {
-      outline: none;
-      border-color: #1a5276;
-      box-shadow: 0 0 8px rgba(26,82,118,0.7);
-      background-color: white;
+
+    h1 { margin: 0 0 0.5rem 0; text-align: center; color: var(--primary); }
+    p.subtitle { text-align: center; color: var(--text-light); margin-bottom: 2rem; }
+
+    /* Formularios */
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    input, select {
+      width: 100%; padding: 0.75rem; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.2s;
     }
-    button {
-      margin-top: 1.8rem;
-      padding: 0.8rem 1.4rem;
-      background-color: #1a5276;
-      color: white;
-      font-weight: 700;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      width: 100%;
-      box-shadow: 0 4px 10px rgba(26,82,118,0.5);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+    .row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* Botones */
+    .btn {
+      width: 100%; padding: 0.75rem; border: none; border-radius: 8px;
+      font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 1rem;
     }
-    button:hover:enabled {
-      background-color: #154360;
-      box-shadow: 0 6px 20px rgba(21,67,96,0.6);
-    }
-    button:disabled {
-      background-color: #7ea8c9;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .hidden {
-      display: none;
-    }
-    .alumno-block {
-      border: 1.5px solid #bdd7ee;
-      padding: 1rem 1.2rem;
-      margin-top: 1.8rem;
-      border-radius: 12px;
-      background-color: #d9eefa;
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
-    }
-    .acompanantes-container {
-      margin-top: 1rem;
-      background: #c1d5f4;
-      padding: 0.8rem 1rem;
-      border-radius: 8px;
-      box-shadow: inset 0 1px 6px rgba(0,0,0,0.07);
-    }
-    .acompanante-item {
-      margin-bottom: 0.9rem;
-      display: flex;
-      gap: 0.9rem;
-      align-items: center;
-    }
-    .acompanante-item label {
-      flex-shrink: 0;
-      width: 110px;
-      font-weight: 700;
-      color: #154360;
-    }
-    .acompanante-item input {
-      flex-grow: 1;
-      padding: 0.4rem 0.5rem;
-      border-radius: 8px;
-      border: 1px solid #7ea8c9;
-      font-size: 1rem;
-      background-color: white;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
-    }
-    .btn-agregar-acomp {
-      margin-top: 0.7rem;
-      background-color: #1a5276;
-      padding: 0.4rem 1.3rem;
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-secondary { background: #f1f5f9; color: var(--text-main); width: auto; padding: 0.5rem 1rem; font-size: 0.9rem;}
+    .btn-danger { background: #fee2e2; color: var(--danger); padding: 0.4rem 0.8rem; font-size: 0.8rem;}
+
+    /* TARJETA DE ALUMNO - ESTILO JERÁRQUICO */
+    .alumno-card {
+      border: 1px solid var(--border);
       border-radius: 10px;
-      font-size: 1.05rem;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 3px 8px rgba(26,82,118,0.5);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      background: white;
+      position: relative;
+      border-left: 5px solid var(--primary); /* Línea visual izquierda */
     }
-    .btn-agregar-acomp:hover {
-      background-color: #154360;
-      box-shadow: 0 5px 15px rgba(21,67,96,0.7);
+    
+    .alumno-header {
+      font-weight: 700; color: var(--primary); margin-bottom: 1rem;
+      text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
     }
-    .btn-eliminar-acomp {
-      background-color: #ba2e3f;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.35rem 0.8rem;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 2px 7px rgba(186,46,63,0.5);
+
+    /* SECCIÓN ACOMPAÑANTES (JERARQUÍA) */
+    .acompanantes-section {
+      margin-top: 1.2rem;
+      padding-left: 1.5rem; /* Indentación */
+      border-left: 2px dashed #cbd5e1; /* Línea guía punteada vertical */
+      margin-left: 0.5rem;
     }
-    .btn-eliminar-acomp:hover {
-      background-color: #871c2c;
-      box-shadow: 0 4px 12px rgba(135,28,44,0.7);
+    
+    .acomp-title {
+      font-size: 0.85rem; font-weight: bold; color: var(--text-light);
+      margin-bottom: 0.8rem; display: flex; align-items: center;
     }
-    #message {
-      margin-top: 1.8rem;
-      font-weight: 800;
-      text-align: center;
-      min-height: 1.6rem;
-      color: #0e513b;
+    .acomp-title::before {
+      content: "↳"; /* Símbolo de jerarquía */
+      margin-right: 6px; font-size: 1.2rem; color: #cbd5e1;
     }
-    #lista-impresion {
-      margin-top: 2rem;
-      border-top: 3px solid #a3d2ca;
-      padding-top: 1.2rem;
-      font-size: 1.15rem;
-      color: #154360;
-      line-height: 1.5;
-      max-height: 60vh;
-      overflow-y: auto;
-      background: #e6f2f0;
-      border-radius: 12px;
-      box-shadow: inset 0 3px 15px #93c8bf;
+
+    .acomp-row {
+      display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;
+      position: relative;
     }
-    #btn-imprimir-lista {
-      margin-top: 1.5rem;
-      width: 100%;
-      padding: 0.85rem;
-      background-color: #14532d;
-      color: white;
-      font-size: 1.15rem;
-      border: none;
-      border-radius: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 5px 18px rgba(20,83,45,0.8);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    /* Guion visual para cada item */
+    .acomp-row::before {
+      content: "-";
+      position: absolute; left: -15px; color: var(--text-light); font-weight: bold;
     }
-    #btn-imprimir-lista:hover {
-      background-color: #0f4225;
-      box-shadow: 0 7px 25px rgba(15,66,37,0.95);
+
+    .acomp-row input { padding: 0.5rem; font-size: 0.9rem; background: #f8fafc; }
+
+    /* Utilidades */
+    .hidden { display: none; }
+    #message { margin-top: 1rem; text-align: center; padding: 0.8rem; border-radius: 6px; font-weight: 600; }
+    .msg-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+    .msg-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+    /* =========================================
+       ESTILOS DE IMPRESIÓN (VOUCHER JERÁRQUICO)
+       ========================================= */
+    #print-area { display: none; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .main-card, .no-print { display: none !important; }
+      #print-area {
+        display: block; width: 100%; max-width: 400px; /* Ancho ticket */
+        margin: 0 auto; font-family: 'Courier New', monospace;
+        color: black; padding: 10px;
+      }
+      .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
+      .ticket-header h2 { font-size: 1.2rem; margin: 5px 0; }
+      .ticket-info p { margin: 3px 0; font-size: 0.9rem; }
+      
+      /* Lista Jerárquica en Impresión */
+      .print-list { width: 100%; border-top: 1px solid #000; margin-top: 10px; padding-top: 10px; }
+      
+      .print-item-alumno {
+        margin-top: 15px;
+        font-weight: bold;
+        font-size: 1rem;
+        text-transform: uppercase;
+      }
+      
+      .print-item-acomp {
+        margin-left: 20px; /* Sangría para acompañante */
+        font-size: 0.9rem;
+        margin-top: 2px;
+        font-weight: normal;
+        text-transform: capitalize;
+      }
+      .print-item-acomp::before {
+        content: "- "; /* Guion forzado */
+      }
+
+      .ticket-total { margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; text-align: right; font-weight: bold; }
+      .ticket-footer { margin-top: 30px; text-align: center; font-size: 0.8rem; }
     }
   </style>
 </head>
 <body>
-  <h1>Comité: Registro de Alumnos y Acompañantes</h1>
 
-  <div id="pantalla1">
-    <h2>Paso 1: Selección y número de alumnos</h2>
-    <label for="local-select">Selecciona un Local:</label>
-    <select id="local-select">
-      <option value="">-- Selecciona Local --</option>
-    </select>
+  <div class="main-card">
+    <h1>Registro de Ingreso</h1>
+    <p class="subtitle">Sistema de Control</p>
 
-    <label for="institucion-input">Institución Educativa (selecciona o ingresa):</label>
-    <select id="institucion-select" style="display:none;"></select>
-    <input type="text" id="institucion-input" placeholder="Escribe el nombre de la institución" />
+    <div id="pantalla1">
+      <div class="form-group">
+        <label>Local</label>
+        <select id="local-select"><option value="">Cargando...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Institución Educativa</label>
+        <div class="row-grid">
+          <select id="institucion-select" class="hidden"></select>
+          <input type="text" id="institucion-input" placeholder="Nombre de la institución">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Cantidad de Alumnos</label>
+        <input type="number" id="numero-alumnos" min="1" value="1">
+      </div>
+      <button id="btn-siguiente" class="btn btn-primary">Siguiente</button>
+    </div>
 
-    <label for="numero-alumnos">Número de alumnos:</label>
-    <input type="number" id="numero-alumnos" min="1" placeholder="Cantidad de alumnos" />
+    <div id="pantalla2" class="hidden">
+      <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+        <h3 style="margin:0;">Datos de Asistentes</h3>
+        <button id="btn-volver" class="btn btn-secondary">Atrás</button>
+      </div>
+      
+      <div id="alumnos-container"></div>
+      
+      <div id="message"></div>
+      
+      <button id="btn-guardar" class="btn btn-success" style="margin-top:1.5rem;">Guardar Registro</button>
+    </div>
 
-    <button id="btn-siguiente">Siguiente</button>
+    <div id="pantalla3" class="hidden" style="text-align:center;">
+      <h2 style="color:var(--success);">¡Registro Exitoso!</h2>
+      <p>Se ha bloqueado la institución para evitar duplicados.</p>
+      <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir Ticket</button>
+      <br><br>
+      <button onclick="location.reload()" class="btn btn-secondary">Nuevo Registro (Reiniciar)</button>
+    </div>
   </div>
 
-  <div id="pantalla2" class="hidden">
-    <h2>Paso 2: Ingreso de Alumnos y Acompañantes</h2>
+  <div id="print-area">
+    <div class="ticket-header">
+      <h2>TICKET DE INGRESO</h2>
+      <p id="print-fecha"></p>
+    </div>
+    <div class="ticket-info">
+      <p><strong>Local:</strong> <span id="print-local"></span></p>
+      <p><strong>Institución:</strong> <span id="print-institucion"></span></p>
+      <p><strong>Código:</strong> <span id="print-id"></span></p>
+    </div>
 
-    <div id="alumnos-container"></div>
+    <div id="print-lista" class="print-list"></div>
 
-    <button id="btn-guardar">Guardar y Mostrar Lista</button>
-
-    <div id="lista-impresion"></div>
-    <button id="btn-imprimir-lista" class="hidden">Imprimir Lista</button>
+    <div class="ticket-total">
+      TOTAL PERSONAS: <span id="print-total">0</span>
+    </div>
+    
+    <div class="ticket-footer">
+      <p>_______________________<br>Firma Conformidad</p>
+    </div>
   </div>
-
-  <div id="message"></div>
 
 <script>
   const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
-
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const pantalla1 = document.getElementById('pantalla1');
-  const pantalla2 = document.getElementById('pantalla2');
-  const message = document.getElementById('message');
-
+  // Elementos
   const localSelect = document.getElementById('local-select');
-  const institucionSelect = document.getElementById('institucion-select');
-  const institucionInput = document.getElementById('institucion-input');
-  const numeroAlumnosInput = document.getElementById('numero-alumnos');
-  const btnSiguiente = document.getElementById('btn-siguiente');
+  const instSelect = document.getElementById('institucion-select');
+  const instInput = document.getElementById('institucion-input');
+  const container = document.getElementById('alumnos-container');
+  const msg = document.getElementById('message');
 
-  const alumnosContainer = document.getElementById('alumnos-container');
-  const btnGuardar = document.getElementById('btn-guardar');
-  const listaImpresion = document.getElementById('lista-impresion');
-  const btnImprimirLista = document.getElementById('btn-imprimir-lista');
+  let alumnosData = [];
+  let sesion = {};
 
-  let numeroAlumnos = 0;
-  let alumnosDatos = [];
-  let guardadoFinalizado = false;
-
+  // 1. Carga Inicial
   async function cargarLocales() {
-    const { data, error } = await supabase.from('locales').select('id, nombre').order('nombre');
-    if (error) {
-      message.textContent = 'Error cargando locales';
-      return;
-    }
-    data.forEach(local => {
-      const option = document.createElement('option');
-      option.value = local.id;
-      option.textContent = local.nombre;
-      localSelect.appendChild(option);
-    });
+    const { data } = await supabase.from('locales').select('*').order('nombre');
+    localSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+    data?.forEach(l => localSelect.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
   }
-
-  async function cargarInstituciones(localId) {
-    institucionSelect.innerHTML = '';
-    institucionSelect.style.display = 'none';
-    institucionInput.style.display = 'block';
-    institucionInput.value = '';
-
-    if (!localId) return;
-
-    const { data, error } = await supabase.from('instituciones_educativas')
-      .select('id, nombre')
-      .eq('local_id', localId)
-      .order('nombre');
-
-    if (error) {
-      message.textContent = 'Error cargando instituciones';
-      return;
-    }
-    if (data.length > 0) {
-      institucionSelect.style.display = 'block';
-      institucionSelect.innerHTML = '<option value="">-- Selecciona Institución --</option>';
-      data.forEach(inst => {
-        const option = document.createElement('option');
-        option.value = inst.id;
-        option.textContent = inst.nombre;
-        institucionSelect.appendChild(option);
-      });
-      institucionInput.style.display = 'none';
-    }
-  }
-
-  localSelect.addEventListener('change', () => {
-    cargarInstituciones(localSelect.value);
-  });
-
-  institucionSelect.addEventListener('change', () => {
-    if (institucionSelect.value) {
-      institucionInput.style.display = 'none';
-    } else {
-      institucionInput.style.display = 'block';
-    }
-  });
-
-  btnSiguiente.addEventListener('click', () => {
-    if (guardadoFinalizado) return; // Bloquea si ya guardó
-
-    const localId = localSelect.value;
-    let institucionId = institucionSelect.value;
-    const institucionNombre = institucionInput.value.trim();
-    numeroAlumnos = parseInt(numeroAlumnosInput.value);
-
-    if (!localId) {
-      message.textContent = 'Selecciona un local';
-      return;
-    }
-    if (!institucionId && !institucionNombre) {
-      message.textContent = 'Selecciona o ingresa una institución educativa';
-      return;
-    }
-    if (!numeroAlumnos || numeroAlumnos < 1) {
-      message.textContent = 'Ingresa un número válido de alumnos';
-      return;
-    }
-    message.textContent = '';
-    btnImprimirLista.classList.add('hidden');
-    listaImpresion.innerHTML = '';
-
-    (async () => {
-      if (!institucionId) {
-        const { data, error } = await supabase.from('instituciones_educativas')
-          .insert([{ nombre: institucionNombre, local_id: localId }])
-          .select()
-          .single();
-        if (error) {
-          message.textContent = 'Error guardando institución';
-          return;
-        }
-        institucionId = data.id;
-      }
-      iniciarPantalla2(localId, institucionId, numeroAlumnos);
-    })();
-  });
-
-  function iniciarPantalla2(localId, institucionId, numAlumnos) {
-    pantalla1.classList.add('hidden');
-    pantalla2.classList.remove('hidden');
-    alumnosContainer.innerHTML = '';
-    alumnosDatos = [];
-    guardadoFinalizado = false;
-
-    for (let i = 0; i < numAlumnos; i++) {
-      alumnosDatos.push({ nombre: '', apellido: '', acompanantes: [] });
-    }
-
-    alumnosDatos.forEach((alumno, idx) => {
-      const alumnoDiv = document.createElement('div');
-      alumnoDiv.classList.add('alumno-block');
-
-      alumnoDiv.innerHTML = `
-        <h3>Alumno ${idx + 1}</h3>
-        <label>Nombre:</label>
-        <input type="text" class="alumno-nombre" data-idx="${idx}" />
-        <label>Apellido:</label>
-        <input type="text" class="alumno-apellido" data-idx="${idx}" />
-        <div class="acompanantes-container" data-idx="${idx}">
-          <h4>Acompañantes</h4>
-          <button class="btn-agregar-acomp" data-idx="${idx}">Agregar Acompañante</button>
-          <div class="lista-acompanantes"></div>
-        </div>
-      `;
-
-      alumnosContainer.appendChild(alumnoDiv);
-    });
-
-    alumnosContainer.querySelectorAll('.alumno-nombre').forEach(input => {
-      input.addEventListener('input', e => {
-        const i = e.target.dataset.idx;
-        alumnosDatos[i].nombre = e.target.value;
-      });
-    });
-    alumnosContainer.querySelectorAll('.alumno-apellido').forEach(input => {
-      input.addEventListener('input', e => {
-        const i = e.target.dataset.idx;
-        alumnosDatos[i].apellido = e.target.value;
-      });
-    });
-    alumnosContainer.querySelectorAll('.btn-agregar-acomp').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const i = btn.dataset.idx;
-        agregarAcompanante(i);
-      });
-    });
-  }
-
-  function agregarAcompanante(alumnoIdx) {
-    const container = alumnosContainer.querySelector(`.acompanantes-container[data-idx="${alumnoIdx}"]`);
-    if (!container) return;
-    const lista = container.querySelector('.lista-acompanantes');
-    const acompDiv = document.createElement('div');
-    acompDiv.classList.add('acompanante-item');
-
-    const acompIdx = alumnosDatos[alumnoIdx].acompanantes.length;
-
-    acompDiv.innerHTML = `
-      <label>Nombre:</label>
-      <input type="text" class="acomp-nombre" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
-      <label>Apellido:</label>
-      <input type="text" class="acomp-apellido" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}" />
-      <button class="btn-eliminar-acomp" data-alumno-idx="${alumnoIdx}" data-acomp-idx="${acompIdx}">Eliminar</button>
-    `;
-
-    lista.appendChild(acompDiv);
-
-    acompDiv.querySelector('.acomp-nombre').addEventListener('input', e => {
-      alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
-      alumnosDatos[alumnoIdx].acompanantes[acompIdx].nombre = e.target.value;
-    });
-    acompDiv.querySelector('.acomp-apellido').addEventListener('input', e => {
-      alumnosDatos[alumnoIdx].acompanantes[acompIdx] = alumnosDatos[alumnoIdx].acompanantes[acompIdx] || {};
-      alumnosDatos[alumnoIdx].acompanantes[acompIdx].apellido = e.target.value;
-    });
-    acompDiv.querySelector('.btn-eliminar-acomp').addEventListener('click', e => {
-      alumnosDatos[alumnoIdx].acompanantes.splice(acompIdx, 1);
-      lista.removeChild(acompDiv);
-      Array.from(lista.children).forEach((child, idx) => {
-        child.querySelector('.acomp-nombre').dataset.acompIdx = idx;
-        child.querySelector('.acomp-apellido').dataset.acompIdx = idx;
-        child.querySelector('.btn-eliminar-acomp').dataset.acompIdx = idx;
-      });
-    });
-  }
-
-  btnGuardar.addEventListener('click', async () => {
-    if (guardadoFinalizado) return;
-    for (let i = 0; i < alumnosDatos.length; i++) {
-      const a = alumnosDatos[i];
-      if (!a.nombre.trim() || !a.apellido.trim()) {
-        message.textContent = `El alumno ${i+1} debe tener nombre y apellido`;
-        return;
-      }
-      for (let j = 0; j < a.acompanantes.length; j++) {
-        const ac = a.acompanantes[j];
-        if (!ac?.nombre?.trim() || !ac?.apellido?.trim()) {
-          message.textContent = `El acompañante ${j+1} del alumno ${i+1} debe tener nombre y apellido`;
-          return;
-        }
-      }
-    }
-    message.textContent = 'Guardando datos...';
-
-    try {
-      const localId = localSelect.value;
-      let institucionId = institucionSelect.value || null;
-      if (!institucionId) {
-        const { data: institucionesData } = await supabase.from('instituciones_educativas')
-          .select('id')
-          .eq('nombre', institucionInput.value.trim());
-        institucionId = institucionesData?.[0]?.id || null;
-      }
-      const { data: registro, error: errorRegistro } = await supabase
-        .from('registros_comite')
-        .insert([{ local_id: localId, institucion_id: institucionId, numero_alumnos: numeroAlumnos }])
-        .select()
-        .single();
-      if (errorRegistro) throw errorRegistro;
-
-      const registroId = registro.id;
-
-      for (const alumno of alumnosDatos) {
-        const { data: alumnoData, error: errorAlumno } = await supabase
-          .from('alumnos')
-          .insert([{ nombre: alumno.nombre, apellido: alumno.apellido, institucion_id: institucionId }])
-          .select()
-          .single();
-        if (errorAlumno) throw errorAlumno;
-
-        const alumnoId = alumnoData.id;
-
-        await supabase.from('registro_alumnos').insert([{ registro_comite_id: registroId, alumno_id: alumnoId }]);
-
-        for (const acomp of alumno.acompanantes) {
-          await supabase.from('acompanantes').insert([
-            { nombre: acomp.nombre, apellido: acomp.apellido, alumno_id: alumnoId }
-          ]);
-        }
-      }
-
-      message.textContent = 'Datos guardados correctamente.';
-      mostrarListaImpresion();
-      bloquearFormulario();
-
-    } catch (error) {
-      message.textContent = 'Error guardando datos: ' + error.message;
-    }
-  });
-
-  function mostrarListaImpresion() {
-    listaImpresion.innerHTML = '';
-    alumnosDatos.forEach((alumno, idx) => {
-      const div = document.createElement('div');
-      const acompText = alumno.acompanantes.map(ac => `${ac.nombre} ${ac.apellido}`).join(', ') || 'Sin acompañantes';
-      div.innerHTML = `<strong>Alumno ${idx+1}:</strong> ${alumno.nombre} ${alumno.apellido} <br/>
-                       <em>Acompañantes:</em> ${acompText}<br/><hr/>`;
-      listaImpresion.appendChild(div);
-    });
-    btnImprimirLista.classList.remove('hidden');
-  }
-
-  btnImprimirLista.addEventListener('click', () => {
-    const contenido = listaImpresion.innerHTML;
-    const ventanaImpresion = window.open('', '', 'width=500,height=700');
-    ventanaImpresion.document.write('<html><head><title>Lista de Alumnos</title></head><body>');
-    ventanaImpresion.document.write('<h2>Lista de Alumnos y Acompañantes</h2>' + contenido);
-    ventanaImpresion.document.write('</body></html>');
-    ventanaImpresion.document.close();
-    ventanaImpresion.focus();
-    ventanaImpresion.print();
-  });
-
-  function bloquearFormulario() {
-    guardadoFinalizado = true;
-    // Deshabilitar inputs y selects de pantallas
-    [localSelect, institucionSelect, institucionInput, numeroAlumnosInput, btnSiguiente, btnGuardar].forEach(el => {
-      el.disabled = true;
-    });
-    // Deshabilitar inputs y botones de alumnos y acompañantes
-    alumnosContainer.querySelectorAll('input, button').forEach(el => {
-      el.disabled = true;
-    });
-  }
-
   cargarLocales();
 
+  localSelect.addEventListener('change', async () => {
+    instSelect.classList.add('hidden');
+    instInput.style.display = 'block';
+    instInput.value = '';
+    if(!localSelect.value) return;
+    
+    const { data } = await supabase.from('instituciones_educativas')
+      .select('*').eq('local_id', localSelect.value).order('nombre');
+    
+    if(data.length > 0){
+      instSelect.classList.remove('hidden');
+      instInput.style.display = 'none';
+      instSelect.innerHTML = '<option value="">-- Selecciona --</option><option value="nueva">+ Nueva...</option>';
+      data.forEach(i => instSelect.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
+    }
+  });
+
+  instSelect.addEventListener('change', () => {
+    instInput.style.display = (instSelect.value === 'nueva') ? 'block' : 'none';
+    if(instSelect.value === 'nueva') instInput.focus();
+  });
+
+  // 2. Navegación
+  document.getElementById('btn-siguiente').addEventListener('click', () => {
+    const cant = parseInt(document.getElementById('numero-alumnos').value);
+    if(!localSelect.value) return alert('Selecciona local');
+    if(cant < 1) return alert('Mínimo 1 alumno');
+    
+    sesion = {
+      localId: localSelect.value,
+      instId: (instSelect.value && instSelect.value !== 'nueva') ? instSelect.value : null,
+      instNombre: instInput.value || instSelect.options[instSelect.selectedIndex].text,
+      cantidad: cant
+    };
+    
+    renderFormulario(cant);
+    document.getElementById('pantalla1').classList.add('hidden');
+    document.getElementById('pantalla2').classList.remove('hidden');
+  });
+
+  document.getElementById('btn-volver').addEventListener('click', () => {
+    document.getElementById('pantalla2').classList.add('hidden');
+    document.getElementById('pantalla1').classList.remove('hidden');
+  });
+
+  // 3. Renderizado con Diseño Jerárquico
+  function renderFormulario(n) {
+    container.innerHTML = '';
+    alumnosData = [];
+    for(let i=0; i<n; i++){
+      alumnosData.push({ nombre: '', apellido: '', acompanantes: [] });
+      
+      const div = document.createElement('div');
+      div.className = 'alumno-card';
+      div.innerHTML = `
+        <div class="alumno-header">Alumno #${i+1} (Principal)</div>
+        <div class="row-grid">
+          <input type="text" placeholder="Nombre Alumno" oninput="updAlumno(${i}, 'nombre', this.value)">
+          <input type="text" placeholder="Apellido Alumno" oninput="updAlumno(${i}, 'apellido', this.value)">
+        </div>
+        
+        <div class="acompanantes-section">
+          <div class="acomp-title">Acompañantes (Dependientes)</div>
+          <div id="list-acomp-${i}"></div>
+          <button class="btn btn-secondary" style="font-size:0.8rem; margin-top:5px;" onclick="addAcomp(${i})">+ Agregar Acompañante</button>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+  }
+
+  window.updAlumno = (i, field, val) => alumnosData[i][field] = val;
+
+  window.addAcomp = (i) => {
+    const idxAcomp = alumnosData[i].acompanantes.length;
+    alumnosData[i].acompanantes.push({ nombre:'', apellido:'' });
+    
+    const row = document.createElement('div');
+    row.className = 'acomp-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Nombre" oninput="updAcomp(${i}, ${idxAcomp}, 'nombre', this.value)">
+      <input type="text" placeholder="Apellido" oninput="updAcomp(${i}, ${idxAcomp}, 'apellido', this.value)">
+      <button class="btn btn-danger" onclick="this.parentElement.remove(); delAcomp(${i}, ${idxAcomp})">X</button>
+    `;
+    document.getElementById(`list-acomp-${i}`).appendChild(row);
+  };
+
+  window.updAcomp = (i, j, field, val) => {
+    if(alumnosData[i].acompanantes[j]) alumnosData[i].acompanantes[j][field] = val;
+  };
+  
+  window.delAcomp = (i, j) => {
+    // Marcamos como null para filtrar al guardar
+    alumnosData[i].acompanantes[j] = null;
+  };
+
+  // 4. Guardado con Validación de Duplicados
+  document.getElementById('btn-guardar').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-guardar');
+    msg.textContent = '';
+    msg.className = '';
+
+    // Validar campos vacíos
+    if(alumnosData.some(a => !a.nombre || !a.apellido)) {
+      msg.textContent = 'Todos los alumnos deben tener nombre y apellido.';
+      msg.className = 'msg-error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    try {
+      // A. Resolver ID de Institución
+      let finalInstId = sesion.instId;
+      if(!finalInstId) {
+        // Buscar si existe por nombre
+        const { data: existe } = await supabase.from('instituciones_educativas')
+          .select('id').ilike('nombre', sesion.instNombre.trim()).maybeSingle();
+        
+        if(existe) finalInstId = existe.id;
+        else {
+          const { data: nueva } = await supabase.from('instituciones_educativas')
+            .insert([{ nombre: sesion.instNombre.trim(), local_id: sesion.localId }]).select().single();
+          finalInstId = nueva.id;
+        }
+      }
+
+      // B. VERIFICACIÓN DE DUPLICADOS (Crucial)
+      const { data: duplicado } = await supabase.from('registros_comite')
+        .select('id')
+        .eq('institucion_id', finalInstId)
+        .maybeSingle();
+
+      if (duplicado) {
+        throw new Error('¡ALERTA! Esta institución YA FUE REGISTRADA anteriormente. No se puede volver a ingresar.');
+      }
+
+      // C. Guardar Datos
+      btn.textContent = 'Guardando...';
+      
+      const { data: reg } = await supabase.from('registros_comite')
+        .insert([{ local_id: sesion.localId, institucion_id: finalInstId, numero_alumnos: sesion.cantidad }])
+        .select().single();
+
+      for(const alum of alumnosData) {
+        const { data: alumDb } = await supabase.from('alumnos')
+          .insert([{ nombre: alum.nombre, apellido: alum.apellido, institucion_id: finalInstId }])
+          .select().single();
+          
+        await supabase.from('registro_alumnos').insert([{ registro_comite_id: reg.id, alumno_id: alumDb.id }]);
+
+        const validAcomps = alum.acompanantes.filter(a => a !== null && a.nombre);
+        if(validAcomps.length > 0) {
+          await supabase.from('acompanantes').insert(
+            validAcomps.map(a => ({ nombre: a.nombre, apellido: a.apellido, alumno_id: alumDb.id }))
+          );
+        }
+      }
+
+      // D. Preparar Ticket Jerárquico
+      prepararTicket(finalInstId, reg.id);
+      document.getElementById('pantalla2').classList.add('hidden');
+      document.getElementById('pantalla3').classList.remove('hidden');
+
+    } catch (e) {
+      msg.textContent = e.message;
+      msg.className = 'msg-error';
+      btn.disabled = false;
+      btn.textContent = 'Guardar Registro';
+    }
+  });
+
+  function prepararTicket(instId, regId) {
+    // Datos cabecera
+    document.getElementById('print-fecha').textContent = new Date().toLocaleString();
+    document.getElementById('print-local').textContent = localSelect.options[localSelect.selectedIndex].text;
+    document.getElementById('print-institucion').textContent = sesion.instNombre;
+    document.getElementById('print-id').textContent = '#' + regId;
+
+    // Generar Lista Jerárquica
+    const listaDiv = document.getElementById('print-lista');
+    listaDiv.innerHTML = '';
+    let total = 0;
+
+    alumnosData.forEach(alum => {
+      total++;
+      // 1. Alumno (Padre)
+      const divAlum = document.createElement('div');
+      divAlum.className = 'print-item-alumno';
+      divAlum.textContent = `• ${alum.nombre} ${alum.apellido}`;
+      listaDiv.appendChild(divAlum);
+
+      // 2. Acompañantes (Hijos con guiones)
+      const acomps = alum.acompanantes.filter(a => a!==null && a.nombre);
+      acomps.forEach(ac => {
+        total++;
+        const divAc = document.createElement('div');
+        divAc.className = 'print-item-acomp';
+        divAc.textContent = `${ac.nombre} ${ac.apellido}`; // El CSS agrega el guion "- "
+        listaDiv.appendChild(divAc);
+      });
+    });
+
+    document.getElementById('print-total').textContent = total;
+  }
 </script>
 </body>
 </html>
