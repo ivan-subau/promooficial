@@ -186,4 +186,387 @@
   <table class="print-table">
     <thead>
       <tr>
-        <td
+        <td colspan="3" class="header-cell">
+          <h2 class="header-title">LISTA DE CONTROL DE INGRESO</h2>
+          <p class="header-subtitle" id="print-subtitle"></p>
+        </td>
+      </tr>
+      <tr>
+        <th class="col-header col-check">CHECK</th>
+        <th class="col-header col-data">ASISTENTES (GRUPO FAMILIAR)</th>
+        <th class="col-header col-mesa">UBICACIÓN</th>
+      </tr>
+    </thead>
+    
+    <tbody id="print-tbody">
+      </tbody>
+  </table>
+  
+  <div class="print-footer">Generado el <span id="print-date"></span></div>
+</div>
+
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal-content">
+    <span style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;" onclick="closeModal('modal-editar')">×</span>
+    <h3 style="margin-top:0;">Editar Asistente</h3>
+    <input type="hidden" id="edit-id">
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+      <div><label>Nombre</label><input type="text" id="edit-nom"></div>
+      <div><label>Apellido</label><input type="text" id="edit-ape"></div>
+    </div>
+
+    <label><strong>Mesas:</strong></label>
+    <div class="mesa-grid" id="edit-mesas-container"></div>
+    
+    <label style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong>Acompañantes:</strong>
+        <button class="btn-sm btn-outline" onclick="agregarFilaAcompEditar()">+ Agregar otro</button>
+    </label>
+    <div id="edit-acomp-container"></div>
+
+    <div style="margin-top:20px; text-align:right;">
+      <button class="btn-outline" onclick="closeModal('modal-editar')">Cancelar</button>
+      <button onclick="guardarEdicion()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-nuevo">
+  <div class="modal-content">
+    <span style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;" onclick="closeModal('modal-nuevo')">×</span>
+    <h3 style="margin-top:0; color:var(--success);">Registrar Nuevo Alumno</h3>
+    
+    <div class="controls-grid" style="margin-bottom:15px;">
+        <div>
+            <label>1. Local</label>
+            <select id="new-al-local" onchange="cargarInstNuevoAlumno()"><option value="">Selecciona...</option></select>
+        </div>
+        <div>
+            <label>2. Institución</label>
+            <select id="new-al-inst" disabled><option value="">Selecciona Local...</option></select>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+        <div><label>Nombre Alumno</label><input type="text" id="new-al-nom"></div>
+        <div><label>Apellido Alumno</label><input type="text" id="new-al-ape"></div>
+    </div>
+
+    <label><strong>Asignar Mesas (Opcional):</strong></label>
+    <div class="mesa-grid" id="new-al-mesas"></div>
+
+    <label style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong>Acompañantes:</strong>
+        <button class="btn-sm btn-outline" onclick="agregarFilaAcompNuevo()">+ Agregar</button>
+    </label>
+    <div id="new-al-acomp-container" style="border:1px dashed #ccc; padding:10px; border-radius:6px; min-height:50px;"></div>
+
+    <div style="margin-top:20px; text-align:right;">
+        <button class="btn-outline" onclick="closeModal('modal-nuevo')">Cancelar</button>
+        <button class="btn-success" onclick="guardarNuevoAlumno()">Registrar Alumno</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://zygyagsmkjgvtmoxoznk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let dataGlobal = [];
+let mesasGlobal = [];
+let localesGlobal = [];
+
+const tBody = document.getElementById('tabla-body');
+const selLocal = document.getElementById('filtro-local');
+const selInst = document.getElementById('filtro-inst');
+const inpText = document.getElementById('filtro-texto');
+
+init();
+
+async function init() {
+  await Promise.all([cargarLocales(), cargarMesas()]);
+  await cargarDatos();
+}
+
+async function cargarLocales() {
+  const { data } = await supabase.from('locales').select('*').order('nombre');
+  localesGlobal = data || [];
+  selLocal.innerHTML = '<option value="">Todos los Locales</option>';
+  localesGlobal.forEach(l => selLocal.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
+}
+async function cargarMesas() {
+  const { data } = await supabase.from('mesas').select('*').order('nombre');
+  mesasGlobal = data || [];
+}
+
+async function cargarDatos() {
+  tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Cargando datos...</td></tr>';
+  const { data, error } = await supabase.from('alumnos').select(`
+    id, nombre, apellido, institucion_id,
+    institucion:instituciones_educativas(id, nombre, local_id, local:locales(nombre)),
+    acompanantes(id, nombre, apellido),
+    alumno_mesas(mesa:mesas(id, nombre))
+  `).order('id', {ascending:false});
+  
+  if(error) return alert('Error cargando datos');
+  dataGlobal = data || [];
+  filtrarDatos();
+}
+
+async function cargarInstFiltro() {
+  const locId = selLocal.value;
+  selInst.innerHTML = '<option value="">Todas</option>';
+  selInst.disabled = !locId;
+  if(locId) {
+    const { data } = await supabase.from('instituciones_educativas').select('*').eq('local_id', locId);
+    data.forEach(i => selInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
+  }
+  filtrarDatos();
+}
+
+function filtrarDatos() {
+  const loc = selLocal.value;
+  const inst = selInst.value;
+  const txt = inpText.value.toLowerCase();
+  const filtrados = dataGlobal.filter(d => {
+    const matchLoc = loc ? d.institucion?.local_id == loc : true;
+    const matchInst = inst ? d.institucion?.id == inst : true;
+    const matchTxt = (d.nombre+' '+d.apellido).toLowerCase().includes(txt);
+    return matchLoc && matchInst && matchTxt;
+  });
+  renderPantalla(filtrados);
+  updateStats(filtrados);
+}
+
+function renderPantalla(datos) {
+  tBody.innerHTML = '';
+  if(datos.length === 0) return tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>';
+  datos.forEach(d => {
+    const mesas = d.alumno_mesas.map(m => `<span class="badge-mesa">${m.mesa?.nombre}</span>`).join(' ');
+    const acomps = d.acompanantes.map(a => `<div>• ${a.nombre} ${a.apellido}</div>`).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${d.institucion?.local?.nombre || '-'}</strong><br><small>${d.institucion?.nombre || ''}</small></td>
+      <td>${d.nombre} ${d.apellido}</td>
+      <td style="font-size:0.85rem; color:#555;">${acomps || 'Sin acompañantes'}</td>
+      <td>${mesas || '<span style="color:#ccc">---</span>'}</td>
+      <td><button class="btn-sm btn-outline" onclick="abrirModalEditar(${d.id})">✏️ Editar</button></td>
+    `;
+    tBody.appendChild(tr);
+  });
+}
+
+function updateStats(datos) {
+  document.getElementById('stat-alumnos').textContent = datos.length;
+  const totalAcomp = datos.reduce((acc, d) => acc + d.acompanantes.length, 0);
+  document.getElementById('stat-total').textContent = datos.length + totalAcomp;
+  const totalMesas = datos.reduce((acc, d) => acc + d.alumno_mesas.length, 0);
+  document.getElementById('stat-mesas').textContent = totalMesas;
+}
+
+// --- IMPRESIÓN ---
+function prepararImpresion() {
+  const loc = selLocal.value;
+  const inst = selInst.value;
+  const txt = inpText.value.toLowerCase();
+  
+  const datosPrint = dataGlobal.filter(d => {
+    const matchLoc = loc ? d.institucion?.local_id == loc : true;
+    const matchInst = inst ? d.institucion?.id == inst : true;
+    const matchTxt = (d.nombre+' '+d.apellido).toLowerCase().includes(txt);
+    return matchLoc && matchInst && matchTxt;
+  });
+
+  const localNombre = loc ? selLocal.options[selLocal.selectedIndex].text : "TODOS";
+  const instNombre = inst ? selInst.options[selInst.selectedIndex].text : "VARIAS";
+  document.getElementById('print-subtitle').innerHTML = `<strong>LOCAL:</strong> ${localNombre} | <strong>INST:</strong> ${instNombre}`;
+  document.getElementById('print-date').textContent = new Date().toLocaleString();
+
+  const tbody = document.getElementById('print-tbody');
+  tbody.innerHTML = '';
+  datosPrint.forEach((d, idx) => {
+    let acompHTML = '<div class="print-acomp-list">';
+    if(d.acompanantes.length) d.acompanantes.forEach(a => acompHTML += `<div class="print-acomp-item">${a.nombre} ${a.apellido}</div>`);
+    else acompHTML += `<em style="color:#999; font-size:11px;">(Sin acompañantes)</em>`;
+    acompHTML += '</div>';
+
+    let mesaHTML = d.alumno_mesas.length ? d.alumno_mesas.map(m => m.mesa?.nombre).join(' / ') : '';
+    
+    // NOTA: 'data-row' y 'data-cell' clases son importantes para el CSS print
+    const tr = document.createElement('tr');
+    tr.className = 'data-row';
+    tr.innerHTML = `
+      <td class="data-cell col-check"><div class="check-box"></div></td>
+      <td class="data-cell col-data">
+        <span class="print-alumno">${idx+1}. ${d.nombre} ${d.apellido}</span>
+        ${acompHTML}
+      </td>
+      <td class="data-cell col-mesa">${mesaHTML}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  window.print();
+}
+
+// --- MODAL NUEVO ALUMNO ---
+function abrirModalNuevoAlumno() {
+  const sel = document.getElementById('new-al-local');
+  sel.innerHTML = '<option value="">Selecciona Local...</option>';
+  localesGlobal.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
+  
+  document.getElementById('new-al-inst').innerHTML = '<option value="">Selecciona Local...</option>';
+  document.getElementById('new-al-inst').disabled = true;
+  document.getElementById('new-al-nom').value = '';
+  document.getElementById('new-al-ape').value = '';
+  document.getElementById('new-al-acomp-container').innerHTML = '';
+  
+  const divMesas = document.getElementById('new-al-mesas');
+  divMesas.innerHTML = '';
+  mesasGlobal.forEach(m => {
+    divMesas.innerHTML += `<label style="display:flex; gap:5px; align-items:center; font-size:0.9rem;"><input type="checkbox" value="${m.id}"> ${m.nombre}</label>`;
+  });
+
+  document.getElementById('modal-nuevo').classList.add('active');
+}
+
+async function cargarInstNuevoAlumno() {
+  const locId = document.getElementById('new-al-local').value;
+  const selInst = document.getElementById('new-al-inst');
+  selInst.innerHTML = '<option value="">Cargando...</option>';
+  selInst.disabled = true;
+  if(locId) {
+    const { data } = await supabase.from('instituciones_educativas').select('*').eq('local_id', locId);
+    selInst.innerHTML = '<option value="">Selecciona Institución...</option>';
+    data.forEach(i => selInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
+    selInst.disabled = false;
+  }
+}
+
+function agregarFilaAcompNuevo() {
+  const div = document.createElement('div');
+  div.style.display = 'flex'; div.style.gap = '5px'; div.style.marginBottom = '5px';
+  div.innerHTML = `
+    <input type="text" placeholder="Nombre" class="new-ac-nom">
+    <input type="text" placeholder="Apellido" class="new-ac-ape">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2; color:red; border:none; padding:0 8px;">✕</button>
+  `;
+  document.getElementById('new-al-acomp-container').appendChild(div);
+}
+
+async function guardarNuevoAlumno() {
+  const instId = document.getElementById('new-al-inst').value;
+  const nom = document.getElementById('new-al-nom').value;
+  const ape = document.getElementById('new-al-ape').value;
+  
+  if(!instId || !nom || !ape) return alert('Completa los campos obligatorios');
+
+  const { data: al, error } = await supabase.from('alumnos').insert([{nombre:nom, apellido:ape, institucion_id:instId}]).select().single();
+  if(error) return alert('Error guardando alumno: ' + error.message);
+
+  const alumnoId = al.id;
+
+  const noms = document.querySelectorAll('.new-ac-nom');
+  const apes = document.querySelectorAll('.new-ac-ape');
+  const acompInserts = [];
+  for(let i=0; i<noms.length; i++) {
+    if(noms[i].value) acompInserts.push({nombre:noms[i].value, apellido:apes[i].value, alumno_id:alumnoId});
+  }
+  if(acompInserts.length) await supabase.from('acompanantes').insert(acompInserts);
+
+  const checks = document.querySelectorAll('#new-al-mesas input:checked');
+  if(checks.length) {
+    const mesaInserts = Array.from(checks).map(c => ({alumno_id:alumnoId, mesa_id: c.value}));
+    await supabase.from('alumno_mesas').insert(mesaInserts);
+  }
+
+  closeModal('modal-nuevo');
+  cargarDatos();
+  alert('Alumno registrado correctamente');
+}
+
+// --- MODAL EDITAR ---
+function abrirModalEditar(id) {
+  const al = dataGlobal.find(d => d.id === id);
+  if(!al) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nom').value = al.nombre;
+  document.getElementById('edit-ape').value = al.apellido;
+
+  const divMesas = document.getElementById('edit-mesas-container');
+  divMesas.innerHTML = '';
+  const asignadas = al.alumno_mesas.map(m => m.mesa.id);
+  mesasGlobal.forEach(m => {
+    const checked = asignadas.includes(m.id) ? 'checked' : '';
+    divMesas.innerHTML += `<label style="display:flex;gap:5px;align-items:center;font-size:0.9rem;"><input type="checkbox" value="${m.id}" ${checked}> ${m.nombre}</label>`;
+  });
+
+  const divAcomp = document.getElementById('edit-acomp-container');
+  divAcomp.innerHTML = '';
+  al.acompanantes.forEach(a => {
+    divAcomp.innerHTML += `
+      <div style="display:flex; gap:5px; margin-bottom:5px;">
+        <input type="hidden" class="edit-old-id" value="${a.id}">
+        <input type="text" class="edit-old-nom" value="${a.nombre}">
+        <input type="text" class="edit-old-ape" value="${a.apellido}">
+      </div>`;
+  });
+
+  document.getElementById('modal-editar').classList.add('active');
+}
+
+function agregarFilaAcompEditar() {
+  const div = document.createElement('div');
+  div.style.display = 'flex'; div.style.gap = '5px'; div.style.marginBottom = '5px';
+  div.innerHTML = `
+    <input type="text" placeholder="Nuevo Nombre" class="edit-new-nom">
+    <input type="text" placeholder="Nuevo Apellido" class="edit-new-ape">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2; color:red; border:none;">✕</button>
+  `;
+  document.getElementById('edit-acomp-container').appendChild(div);
+}
+
+async function guardarEdicion() {
+  const id = document.getElementById('edit-id').value;
+  const nom = document.getElementById('edit-nom').value;
+  const ape = document.getElementById('edit-ape').value;
+
+  await supabase.from('alumnos').update({nombre:nom, apellido:ape}).eq('id',id);
+
+  const ids = document.querySelectorAll('.edit-old-id');
+  const oldNoms = document.querySelectorAll('.edit-old-nom');
+  const oldApes = document.querySelectorAll('.edit-old-ape');
+  for(let i=0; i<ids.length; i++) {
+    await supabase.from('acompanantes').update({nombre:oldNoms[i].value, apellido:oldApes[i].value}).eq('id', ids[i].value);
+  }
+
+  const newNoms = document.querySelectorAll('.edit-new-nom');
+  const newApes = document.querySelectorAll('.edit-new-ape');
+  const newInserts = [];
+  for(let i=0; i<newNoms.length; i++) {
+    if(newNoms[i].value) newInserts.push({nombre:newNoms[i].value, apellido:newApes[i].value, alumno_id:id});
+  }
+  if(newInserts.length) await supabase.from('acompanantes').insert(newInserts);
+
+  const checks = document.querySelectorAll('#edit-mesas-container input:checked');
+  await supabase.from('alumno_mesas').delete().eq('alumno_id', id);
+  if(checks.length > 0) {
+    const inserts = Array.from(checks).map(c => ({alumno_id:id, mesa_id: c.value}));
+    await supabase.from('alumno_mesas').insert(inserts);
+  }
+
+  closeModal('modal-editar');
+  cargarDatos();
+  alert('Guardado');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function addLocal() { const n = document.getElementById('new-local').value; if(n){ await supabase.from('locales').insert([{nombre:n}]); cargarLocales(); alert('Local creado'); }}
+async function addMesa() { const n = document.getElementById('new-mesa').value; if(n){ await supabase.from('mesas').insert([{nombre:n}]); cargarMesas(); alert('Mesa creada'); }}
+async function addInst() { const l = selLocal.value; const n = document.getElementById('new-inst').value; if(l&&n){ await supabase.from('instituciones_educativas').insert([{nombre:n, local_id:l}]); alert('Institución creada'); } else alert('Selecciona Local en filtro'); }
+</script>
+</body>
+</html>
