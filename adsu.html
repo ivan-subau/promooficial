@@ -13,30 +13,36 @@
       --bg-body: #f3f4f6;
       --text-main: #1f2937;
       --border: #e5e7eb;
+      --success: #10b981;
     }
 
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 2rem; }
 
-    /* --- ESTILOS DE PANTALLA (NO IMPRESIÓN) --- */
+    /* --- ESTILOS DE PANTALLA --- */
     .screen-only { display: block; }
     
     .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: var(--primary); margin-bottom: 1.5rem; }
 
-    /* Stats & Panels */
+    /* Stats */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
     .stat-card { background: white; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .stat-value { font-size: 2rem; font-weight: 700; }
     
+    /* Panel Acciones */
     .action-panel { background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end; }
     
     input, select { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; }
+    
+    /* Botones */
     button { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
     button:hover { background: #3730a3; }
     .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
     .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    .btn-success { background-color: var(--success); color: white; }
+    .btn-success:hover { background-color: #059669; }
 
     /* Tabla Pantalla */
     .table-responsive { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -45,43 +51,54 @@
     table.screen-table td { padding: 1rem; border-bottom: 1px solid var(--border); }
     .badge-mesa { background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin: 2px; display: inline-block; }
 
-    /* Modal */
+    /* Modal Generico */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
     .modal-overlay.active { display: flex; }
-    .modal-content { background: white; width: 90%; max-width: 600px; padding: 2rem; border-radius: 12px; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal-content { background: white; width: 90%; max-width: 650px; padding: 2rem; border-radius: 12px; max-height: 90vh; overflow-y: auto; position: relative; }
     .mesa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; border: 1px solid var(--border); padding: 0.5rem; border-radius: 6px; max-height: 150px; overflow-y: auto; }
 
-    /* --- ESTILOS DE IMPRESIÓN (EL DISEÑO QUE PEDISTE) --- */
+    /* --- ESTILOS DE IMPRESIÓN (SOLUCIÓN 1 y 2) --- */
     #print-area { display: none; }
 
     @media print {
-      body { background: white; padding: 0; margin: 0; font-family: Arial, sans-serif; }
+      /* Ocultar elementos de UI */
       .screen-only, .modal-overlay { display: none !important; }
       
-      #print-area { display: block; padding: 20px; width: 100%; }
+      /* Configuración de Página */
+      @page { margin: 0; size: auto; } /* Borra fecha/url */
+      body { margin: 1.5cm; background: white; font-family: Arial, sans-serif; }
+
+      #print-area { display: block; width: 100%; }
       
       /* Cabecera Ticket */
       .print-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-      .print-header h2 { margin: 0; font-size: 20px; text-transform: uppercase; }
-      .print-header p { margin: 5px 0 0 0; font-size: 14px; }
+      .print-header h2 { margin: 0; font-size: 18px; text-transform: uppercase; }
+      .print-header p { margin: 5px 0 0 0; font-size: 12px; }
 
       /* Tabla Checklist */
       table.print-table { width: 100%; border-collapse: collapse; }
-      table.print-table th { border: 1px solid #000; background-color: #f0f0f0; padding: 8px; font-size: 12px; text-transform: uppercase; }
+      
+      /* SOLUCIÓN 2: Repetir Encabezados */
+      thead { display: table-header-group; } 
+      
+      table.print-table th { border: 1px solid #000; background-color: #f0f0f0; padding: 8px; font-size: 11px; text-transform: uppercase; }
+      
+      /* SOLUCIÓN 1: Evitar Ruptura Interna */
+      table.print-table tr { page-break-inside: avoid; break-inside: avoid; }
+      
       table.print-table td { border: 1px solid #000; padding: 8px; vertical-align: middle; }
       
-      /* Columnas específicas */
+      /* Columnas */
       .col-check { width: 40px; text-align: center; }
-      .check-box { width: 18px; height: 18px; border: 2px solid #000; display: inline-block; }
+      .check-box { width: 15px; height: 15px; border: 2px solid #000; display: inline-block; }
       
       .col-data { text-align: left; }
-      .print-alumno { font-size: 16px; font-weight: bold; display: block; text-transform: uppercase;}
-      .print-acomp-list { font-size: 13px; color: #333; margin-top: 4px; padding-left: 15px; }
+      .print-alumno { font-size: 14px; font-weight: bold; display: block; text-transform: uppercase;}
+      .print-acomp-list { font-size: 12px; color: #333; margin-top: 4px; padding-left: 15px; }
       .print-acomp-item::before { content: "↳ "; font-weight: bold; }
       
-      .col-mesa { width: 130px; text-align: center; font-weight: bold; font-size: 18px; }
+      .col-mesa { width: 130px; text-align: center; font-weight: bold; font-size: 16px; }
       
-      /* Pie de página */
       .print-footer { margin-top: 20px; text-align: right; font-size: 10px; border-top: 1px dashed #000; padding-top: 5px; }
     }
   </style>
@@ -94,26 +111,29 @@
   <section class="stats-grid">
     <div class="stat-card">
       <div class="stat-value" id="stat-alumnos">0</div>
-      <div style="color:#666; font-size:0.9rem;">ALUMNOS TITULARES</div>
+      <div style="color:#666; font-size:0.9rem;">ALUMNOS</div>
     </div>
     <div class="stat-card" style="border-left-color: #10b981;">
       <div class="stat-value" id="stat-total">0</div>
-      <div style="color:#666; font-size:0.9rem;">TOTAL PERSONAS</div>
+      <div style="color:#666; font-size:0.9rem;">ASISTENTES (TOTAL)</div>
     </div>
     <div class="stat-card" style="border-left-color: #f59e0b;">
       <div class="stat-value" id="stat-mesas">0</div>
-      <div style="color:#666; font-size:0.9rem;">MESAS ASIGNADAS</div>
+      <div style="color:#666; font-size:0.9rem;">MESAS OCUPADAS</div>
     </div>
   </section>
 
   <section class="action-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-      <h3>Gestión de Invitados</h3>
-      <button onclick="prepararImpresion()">🖨️ Imprimir Reporte de Puerta</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
+      <h3>Gestión de Ingreso</h3>
+      <div>
+        <button class="btn-success" onclick="abrirModalNuevoAlumno()">+ 👤 Nuevo Alumno</button>
+        <button onclick="prepararImpresion()">🖨️ Imprimir Reporte</button>
+      </div>
     </div>
 
     <div style="background:#f9fafb; padding:1rem; border:1px dashed #ccc; border-radius:6px; margin-bottom:1rem;">
-       <small style="font-weight:bold; color:var(--primary);">AGREGAR RÁPIDO:</small>
+       <small style="font-weight:bold; color:var(--primary);">CONFIGURACIÓN RÁPIDA:</small>
        <div class="controls-grid">
          <div>
             <input type="text" id="new-local" placeholder="Nuevo Local">
@@ -124,10 +144,9 @@
             <button class="btn-sm btn-outline" onclick="addMesa()">Crear Mesa</button>
          </div>
          <div>
-           <small>Para crear institución, selecciona Local abajo primero</small>
            <div style="display:flex; gap:5px;">
              <input type="text" id="new-inst" placeholder="Nueva Institución">
-             <button class="btn-sm" onclick="addInst()">Crear Inst.</button>
+             <button class="btn-sm" onclick="addInst()">Crear Inst. (Usa filtro local)</button>
            </div>
          </div>
        </div>
@@ -168,9 +187,8 @@
 <div id="print-area">
   <div class="print-header">
     <h2>LISTA DE CONTROL DE INGRESO</h2>
-    <p id="print-subtitle">REPORTE GENERAL</p>
+    <p id="print-subtitle"></p>
   </div>
-
   <table class="print-table">
     <thead>
       <tr>
@@ -179,18 +197,14 @@
         <th class="col-mesa">UBICACIÓN</th>
       </tr>
     </thead>
-    <tbody id="print-tbody">
-      </tbody>
+    <tbody id="print-tbody"></tbody>
   </table>
-
-  <div class="print-footer">
-    Generado por Sistema de Comité - <span id="print-date"></span>
-  </div>
+  <div class="print-footer">Generado el <span id="print-date"></span></div>
 </div>
 
 <div class="modal-overlay" id="modal-editar">
   <div class="modal-content">
-    <span style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;" onclick="closeModal()">×</span>
+    <span style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;" onclick="closeModal('modal-editar')">×</span>
     <h3 style="margin-top:0;">Editar Asistente</h3>
     <input type="hidden" id="edit-id">
     
@@ -199,16 +213,55 @@
       <div><label>Apellido</label><input type="text" id="edit-ape"></div>
     </div>
 
-    <label><strong>Asignar Mesas:</strong></label>
+    <label><strong>Mesas:</strong></label>
     <div class="mesa-grid" id="edit-mesas-container"></div>
-    <div style="text-align:right; margin-top:5px;"><small style="color:#666;">*Si está vacío, crea mesas en el panel principal</small></div>
-
-    <label style="margin-top:15px; display:block;"><strong>Acompañantes:</strong></label>
+    
+    <label style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong>Acompañantes:</strong>
+        <button class="btn-sm btn-outline" onclick="agregarFilaAcompEditar()">+ Agregar otro</button>
+    </label>
     <div id="edit-acomp-container"></div>
 
     <div style="margin-top:20px; text-align:right;">
-      <button class="btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn-outline" onclick="closeModal('modal-editar')">Cancelar</button>
       <button onclick="guardarEdicion()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-nuevo">
+  <div class="modal-content">
+    <span style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:20px;" onclick="closeModal('modal-nuevo')">×</span>
+    <h3 style="margin-top:0; color:var(--success);">Registrar Nuevo Alumno</h3>
+    
+    <div class="controls-grid" style="margin-bottom:15px;">
+        <div>
+            <label>1. Local</label>
+            <select id="new-al-local" onchange="cargarInstNuevoAlumno()"><option value="">Selecciona...</option></select>
+        </div>
+        <div>
+            <label>2. Institución</label>
+            <select id="new-al-inst" disabled><option value="">Selecciona Local...</option></select>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+        <div><label>Nombre Alumno</label><input type="text" id="new-al-nom"></div>
+        <div><label>Apellido Alumno</label><input type="text" id="new-al-ape"></div>
+    </div>
+
+    <label><strong>Asignar Mesas (Opcional):</strong></label>
+    <div class="mesa-grid" id="new-al-mesas"></div>
+
+    <label style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong>Acompañantes:</strong>
+        <button class="btn-sm btn-outline" onclick="agregarFilaAcompNuevo()">+ Agregar</button>
+    </label>
+    <div id="new-al-acomp-container" style="border:1px dashed #ccc; padding:10px; border-radius:6px; min-height:50px;"></div>
+
+    <div style="margin-top:20px; text-align:right;">
+        <button class="btn-outline" onclick="closeModal('modal-nuevo')">Cancelar</button>
+        <button class="btn-success" onclick="guardarNuevoAlumno()">Registrar Alumno</button>
     </div>
   </div>
 </div>
@@ -223,13 +276,11 @@ let dataGlobal = [];
 let mesasGlobal = [];
 let localesGlobal = [];
 
-// Elementos
 const tBody = document.getElementById('tabla-body');
 const selLocal = document.getElementById('filtro-local');
 const selInst = document.getElementById('filtro-inst');
 const inpText = document.getElementById('filtro-texto');
 
-// INICIO
 init();
 
 async function init() {
@@ -243,7 +294,6 @@ async function cargarLocales() {
   selLocal.innerHTML = '<option value="">Todos los Locales</option>';
   localesGlobal.forEach(l => selLocal.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
 }
-
 async function cargarMesas() {
   const { data } = await supabase.from('mesas').select('*').order('nombre');
   mesasGlobal = data || [];
@@ -257,13 +307,12 @@ async function cargarDatos() {
     acompanantes(id, nombre, apellido),
     alumno_mesas(mesa:mesas(id, nombre))
   `).order('id', {ascending:false});
-
-  if(error) return alert('Error de conexión');
+  
+  if(error) return alert('Error cargando datos');
   dataGlobal = data || [];
   filtrarDatos();
 }
 
-// LÓGICA FILTROS
 async function cargarInstFiltro() {
   const locId = selLocal.value;
   selInst.innerHTML = '<option value="">Todas</option>';
@@ -279,34 +328,29 @@ function filtrarDatos() {
   const loc = selLocal.value;
   const inst = selInst.value;
   const txt = inpText.value.toLowerCase();
-
   const filtrados = dataGlobal.filter(d => {
     const matchLoc = loc ? d.institucion?.local_id == loc : true;
     const matchInst = inst ? d.institucion?.id == inst : true;
     const matchTxt = (d.nombre+' '+d.apellido).toLowerCase().includes(txt);
     return matchLoc && matchInst && matchTxt;
   });
-
   renderPantalla(filtrados);
   updateStats(filtrados);
 }
 
-// RENDERIZADO PANTALLA (ADMIN)
 function renderPantalla(datos) {
   tBody.innerHTML = '';
-  if(datos.length === 0) return tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin resultados</td></tr>';
-
+  if(datos.length === 0) return tBody.innerHTML = '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>';
   datos.forEach(d => {
     const mesas = d.alumno_mesas.map(m => `<span class="badge-mesa">${m.mesa?.nombre}</span>`).join(' ');
     const acomps = d.acompanantes.map(a => `<div>• ${a.nombre} ${a.apellido}</div>`).join('');
-    
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${d.institucion?.local?.nombre || '-'}</strong><br><small>${d.institucion?.nombre || ''}</small></td>
       <td>${d.nombre} ${d.apellido}</td>
       <td style="font-size:0.85rem; color:#555;">${acomps || 'Sin acompañantes'}</td>
       <td>${mesas || '<span style="color:#ccc">---</span>'}</td>
-      <td><button class="btn-sm btn-outline" onclick="abrirModal(${d.id})">✏️ Editar</button></td>
+      <td><button class="btn-sm btn-outline" onclick="abrirModalEditar(${d.id})">✏️ Editar</button></td>
     `;
     tBody.appendChild(tr);
   });
@@ -320,48 +364,33 @@ function updateStats(datos) {
   document.getElementById('stat-mesas').textContent = totalMesas;
 }
 
-// --- IMPRESIÓN (Lógica Clave) ---
+// --- IMPRESIÓN ---
 function prepararImpresion() {
-  // 1. Obtener datos filtrados actuales
   const loc = selLocal.value;
   const inst = selInst.value;
   const txt = inpText.value.toLowerCase();
   
-  // Re-filtramos para asegurarnos de imprimir lo que se ve
-  const datosImprimir = dataGlobal.filter(d => {
+  const datosPrint = dataGlobal.filter(d => {
     const matchLoc = loc ? d.institucion?.local_id == loc : true;
     const matchInst = inst ? d.institucion?.id == inst : true;
     const matchTxt = (d.nombre+' '+d.apellido).toLowerCase().includes(txt);
     return matchLoc && matchInst && matchTxt;
   });
 
-  // 2. Configurar Cabecera
-  const localNombre = loc ? selLocal.options[selLocal.selectedIndex].text : "TODOS LOS LOCALES";
-  const instNombre = inst ? selInst.options[selInst.selectedIndex].text : (loc ? "TODAS LAS INSTITUCIONES" : "");
-  document.getElementById('print-subtitle').innerHTML = `<strong>LOCAL:</strong> ${localNombre} &nbsp;|&nbsp; <strong>INST:</strong> ${instNombre || 'VARIAS'}`;
+  const localNombre = loc ? selLocal.options[selLocal.selectedIndex].text : "TODOS";
+  const instNombre = inst ? selInst.options[selInst.selectedIndex].text : "VARIAS";
+  document.getElementById('print-subtitle').innerHTML = `<strong>LOCAL:</strong> ${localNombre} | <strong>INST:</strong> ${instNombre}`;
   document.getElementById('print-date').textContent = new Date().toLocaleString();
 
-  // 3. Generar Tabla Opción 2
-  const tbodyPrint = document.getElementById('print-tbody');
-  tbodyPrint.innerHTML = '';
-
-  datosImprimir.forEach((d, idx) => {
-    // Acompañantes con jerarquía
+  const tbody = document.getElementById('print-tbody');
+  tbody.innerHTML = '';
+  datosPrint.forEach((d, idx) => {
     let acompHTML = '<div class="print-acomp-list">';
-    if(d.acompanantes.length > 0) {
-      d.acompanantes.forEach(a => {
-        acompHTML += `<div class="print-acomp-item">${a.nombre} ${a.apellido}</div>`;
-      });
-    } else {
-      acompHTML += `<em style="color:#999; font-size:11px;">(Sin acompañantes)</em>`;
-    }
+    if(d.acompanantes.length) d.acompanantes.forEach(a => acompHTML += `<div class="print-acomp-item">${a.nombre} ${a.apellido}</div>`);
+    else acompHTML += `<em style="color:#999; font-size:11px;">(Sin acompañantes)</em>`;
     acompHTML += '</div>';
 
-    // Mesa (Blanco si no tiene)
-    let mesaHTML = '';
-    if (d.alumno_mesas && d.alumno_mesas.length > 0) {
-      mesaHTML = d.alumno_mesas.map(m => m.mesa?.nombre).join(' / ');
-    }
+    let mesaHTML = d.alumno_mesas.length ? d.alumno_mesas.map(m => m.mesa?.nombre).join(' / ') : '';
     
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -372,64 +401,161 @@ function prepararImpresion() {
       </td>
       <td class="col-mesa">${mesaHTML}</td>
     `;
-    tbodyPrint.appendChild(tr);
+    tbody.appendChild(tr);
   });
-
-  // 4. Lanzar Print
   window.print();
 }
 
-// --- CRUD MODAL ---
-function abrirModal(id) {
+// --- MODAL NUEVO ALUMNO ---
+function abrirModalNuevoAlumno() {
+  // Llenar select locales
+  const sel = document.getElementById('new-al-local');
+  sel.innerHTML = '<option value="">Selecciona Local...</option>';
+  localesGlobal.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
+  
+  // Resetear campos
+  document.getElementById('new-al-inst').innerHTML = '<option value="">Selecciona Local...</option>';
+  document.getElementById('new-al-inst').disabled = true;
+  document.getElementById('new-al-nom').value = '';
+  document.getElementById('new-al-ape').value = '';
+  document.getElementById('new-al-acomp-container').innerHTML = '';
+  
+  // Checkboxes mesas
+  const divMesas = document.getElementById('new-al-mesas');
+  divMesas.innerHTML = '';
+  mesasGlobal.forEach(m => {
+    divMesas.innerHTML += `<label style="display:flex; gap:5px; align-items:center; font-size:0.9rem;"><input type="checkbox" value="${m.id}"> ${m.nombre}</label>`;
+  });
+
+  document.getElementById('modal-nuevo').classList.add('active');
+}
+
+async function cargarInstNuevoAlumno() {
+  const locId = document.getElementById('new-al-local').value;
+  const selInst = document.getElementById('new-al-inst');
+  selInst.innerHTML = '<option value="">Cargando...</option>';
+  selInst.disabled = true;
+  if(locId) {
+    const { data } = await supabase.from('instituciones_educativas').select('*').eq('local_id', locId);
+    selInst.innerHTML = '<option value="">Selecciona Institución...</option>';
+    data.forEach(i => selInst.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
+    selInst.disabled = false;
+  }
+}
+
+function agregarFilaAcompNuevo() {
+  const div = document.createElement('div');
+  div.style.display = 'flex'; div.style.gap = '5px'; div.style.marginBottom = '5px';
+  div.innerHTML = `
+    <input type="text" placeholder="Nombre" class="new-ac-nom">
+    <input type="text" placeholder="Apellido" class="new-ac-ape">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2; color:red; border:none; padding:0 8px;">✕</button>
+  `;
+  document.getElementById('new-al-acomp-container').appendChild(div);
+}
+
+async function guardarNuevoAlumno() {
+  const instId = document.getElementById('new-al-inst').value;
+  const nom = document.getElementById('new-al-nom').value;
+  const ape = document.getElementById('new-al-ape').value;
+  
+  if(!instId || !nom || !ape) return alert('Completa los campos obligatorios');
+
+  // 1. Insertar Alumno
+  const { data: al, error } = await supabase.from('alumnos').insert([{nombre:nom, apellido:ape, institucion_id:instId}]).select().single();
+  if(error) return alert('Error guardando alumno: ' + error.message);
+
+  const alumnoId = al.id;
+
+  // 2. Insertar Acompañantes
+  const noms = document.querySelectorAll('.new-ac-nom');
+  const apes = document.querySelectorAll('.new-ac-ape');
+  const acompInserts = [];
+  for(let i=0; i<noms.length; i++) {
+    if(noms[i].value) acompInserts.push({nombre:noms[i].value, apellido:apes[i].value, alumno_id:alumnoId});
+  }
+  if(acompInserts.length) await supabase.from('acompanantes').insert(acompInserts);
+
+  // 3. Insertar Mesas
+  const checks = document.querySelectorAll('#new-al-mesas input:checked');
+  if(checks.length) {
+    const mesaInserts = Array.from(checks).map(c => ({alumno_id:alumnoId, mesa_id: c.value}));
+    await supabase.from('alumno_mesas').insert(mesaInserts);
+  }
+
+  closeModal('modal-nuevo');
+  cargarDatos();
+  alert('Alumno registrado correctamente');
+}
+
+// --- MODAL EDITAR ---
+function abrirModalEditar(id) {
   const al = dataGlobal.find(d => d.id === id);
   if(!al) return;
   document.getElementById('edit-id').value = id;
   document.getElementById('edit-nom').value = al.nombre;
   document.getElementById('edit-ape').value = al.apellido;
 
-  // Mesas
   const divMesas = document.getElementById('edit-mesas-container');
   divMesas.innerHTML = '';
   const asignadas = al.alumno_mesas.map(m => m.mesa.id);
-  
   mesasGlobal.forEach(m => {
     const checked = asignadas.includes(m.id) ? 'checked' : '';
-    divMesas.innerHTML += `<label style="display:flex;align-items:center;font-size:0.9rem;"><input type="checkbox" value="${m.id}" ${checked} style="width:auto;margin-right:5px;"> ${m.nombre}</label>`;
+    divMesas.innerHTML += `<label style="display:flex;gap:5px;align-items:center;font-size:0.9rem;"><input type="checkbox" value="${m.id}" ${checked}> ${m.nombre}</label>`;
   });
 
-  // Acompañantes
   const divAcomp = document.getElementById('edit-acomp-container');
   divAcomp.innerHTML = '';
+  // Existentes
   al.acompanantes.forEach(a => {
     divAcomp.innerHTML += `
       <div style="display:flex; gap:5px; margin-bottom:5px;">
-        <input type="hidden" class="e-ac-id" value="${a.id}">
-        <input type="text" class="e-ac-nom" value="${a.nombre}">
-        <input type="text" class="e-ac-ape" value="${a.apellido}">
+        <input type="hidden" class="edit-old-id" value="${a.id}">
+        <input type="text" class="edit-old-nom" value="${a.nombre}">
+        <input type="text" class="edit-old-ape" value="${a.apellido}">
       </div>`;
   });
 
   document.getElementById('modal-editar').classList.add('active');
 }
 
-function closeModal() { document.getElementById('modal-editar').classList.remove('active'); }
+function agregarFilaAcompEditar() {
+  const div = document.createElement('div');
+  div.style.display = 'flex'; div.style.gap = '5px'; div.style.marginBottom = '5px';
+  div.innerHTML = `
+    <input type="text" placeholder="Nuevo Nombre" class="edit-new-nom">
+    <input type="text" placeholder="Nuevo Apellido" class="edit-new-ape">
+    <button onclick="this.parentElement.remove()" style="background:#fee2e2; color:red; border:none;">✕</button>
+  `;
+  document.getElementById('edit-acomp-container').appendChild(div);
+}
 
 async function guardarEdicion() {
   const id = document.getElementById('edit-id').value;
   const nom = document.getElementById('edit-nom').value;
   const ape = document.getElementById('edit-ape').value;
 
+  // Update Alumno
   await supabase.from('alumnos').update({nombre:nom, apellido:ape}).eq('id',id);
 
-  // Acompañantes
-  const ids = document.querySelectorAll('.e-ac-id');
-  const noms = document.querySelectorAll('.e-ac-nom');
-  const apes = document.querySelectorAll('.e-ac-ape');
+  // Update Acompañantes Existentes
+  const ids = document.querySelectorAll('.edit-old-id');
+  const oldNoms = document.querySelectorAll('.edit-old-nom');
+  const oldApes = document.querySelectorAll('.edit-old-ape');
   for(let i=0; i<ids.length; i++) {
-    await supabase.from('acompanantes').update({nombre:noms[i].value, apellido:apes[i].value}).eq('id', ids[i].value);
+    await supabase.from('acompanantes').update({nombre:oldNoms[i].value, apellido:oldApes[i].value}).eq('id', ids[i].value);
   }
 
-  // Mesas
+  // Insertar Nuevos Acompañantes (agregados en edit)
+  const newNoms = document.querySelectorAll('.edit-new-nom');
+  const newApes = document.querySelectorAll('.edit-new-ape');
+  const newInserts = [];
+  for(let i=0; i<newNoms.length; i++) {
+    if(newNoms[i].value) newInserts.push({nombre:newNoms[i].value, apellido:newApes[i].value, alumno_id:id});
+  }
+  if(newInserts.length) await supabase.from('acompanantes').insert(newInserts);
+
+  // Update Mesas
   const checks = document.querySelectorAll('#edit-mesas-container input:checked');
   await supabase.from('alumno_mesas').delete().eq('alumno_id', id);
   if(checks.length > 0) {
@@ -437,27 +563,17 @@ async function guardarEdicion() {
     await supabase.from('alumno_mesas').insert(inserts);
   }
 
-  closeModal();
+  closeModal('modal-editar');
   cargarDatos();
   alert('Guardado');
 }
 
-// --- CREAR DATOS RÁPIDOS ---
-async function addLocal() {
-  const n = document.getElementById('new-local').value;
-  if(n) { await supabase.from('locales').insert([{nombre:n}]); cargarLocales(); alert('Local creado'); }
-}
-async function addMesa() {
-  const n = document.getElementById('new-mesa').value;
-  if(n) { await supabase.from('mesas').insert([{nombre:n}]); cargarMesas(); alert('Mesa creada'); }
-}
-async function addInst() {
-  const l = selLocal.value;
-  const n = document.getElementById('new-inst').value;
-  if(l && n) { await supabase.from('instituciones_educativas').insert([{nombre:n, local_id:l}]); alert('Institución creada'); }
-  else alert('Selecciona un local primero');
-}
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
+// Agregado rapido
+async function addLocal() { const n = document.getElementById('new-local').value; if(n){ await supabase.from('locales').insert([{nombre:n}]); cargarLocales(); alert('Local creado'); }}
+async function addMesa() { const n = document.getElementById('new-mesa').value; if(n){ await supabase.from('mesas').insert([{nombre:n}]); cargarMesas(); alert('Mesa creada'); }}
+async function addInst() { const l = selLocal.value; const n = document.getElementById('new-inst').value; if(l&&n){ await supabase.from('instituciones_educativas').insert([{nombre:n, local_id:l}]); alert('Institución creada'); } else alert('Selecciona Local en filtro'); }
 </script>
 </body>
 </html>
