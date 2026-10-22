@@ -41,10 +41,32 @@
       border-radius: 16px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       padding: 2rem;
+      position: relative;
     }
 
     h1 { margin: 0 0 0.5rem 0; text-align: center; color: var(--primary); }
     p.subtitle { text-align: center; color: var(--text-light); margin-bottom: 2rem; }
+
+    /* BOTÓN ADMIN EN LA ESQUINA SUPERIOR DERECHA */
+    .btn-admin-access {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-admin-access:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
 
     /* Formularios */
     .form-group { margin-bottom: 1.5rem; }
@@ -76,7 +98,7 @@
       margin-bottom: 1.5rem;
       background: white;
       position: relative;
-      border-left: 5px solid var(--primary); /* Línea visual izquierda */
+      border-left: 5px solid var(--primary);
     }
     
     .alumno-header {
@@ -84,11 +106,11 @@
       text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
     }
 
-    /* SECCIÓN ACOMPAÑANTES (JERARQUÍA) */
+    /* SECCIÓN ACOMPAÑANTES */
     .acompanantes-section {
       margin-top: 1.2rem;
-      padding-left: 1.5rem; /* Indentación */
-      border-left: 2px dashed #cbd5e1; /* Línea guía punteada vertical */
+      padding-left: 1.5rem;
+      border-left: 2px dashed #cbd5e1;
       margin-left: 0.5rem;
     }
     
@@ -97,7 +119,7 @@
       margin-bottom: 0.8rem; display: flex; align-items: center;
     }
     .acomp-title::before {
-      content: "↳"; /* Símbolo de jerarquía */
+      content: "↳";
       margin-right: 6px; font-size: 1.2rem; color: #cbd5e1;
     }
 
@@ -105,7 +127,6 @@
       display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center;
       position: relative;
     }
-    /* Guion visual para cada item */
     .acomp-row::before {
       content: "-";
       position: absolute; left: -15px; color: var(--text-light); font-weight: bold;
@@ -119,24 +140,20 @@
     .msg-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
     .msg-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
 
-    /* =========================================
-       ESTILOS DE IMPRESIÓN (VOUCHER JERÁRQUICO)
-       ========================================= */
+    /* ESTILOS DE IMPRESIÓN */
     #print-area { display: none; }
 
     @media print {
       body { background: white; padding: 0; }
       .main-card, .no-print { display: none !important; }
       #print-area {
-        display: block; width: 100%; max-width: 400px; /* Ancho ticket */
+        display: block; width: 100%; max-width: 400px;
         margin: 0 auto; font-family: 'Courier New', monospace;
         color: black; padding: 10px;
       }
       .ticket-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
       .ticket-header h2 { font-size: 1.2rem; margin: 5px 0; }
       .ticket-info p { margin: 3px 0; font-size: 0.9rem; }
-      
-      /* Lista Jerárquica en Impresión */
       .print-list { width: 100%; border-top: 1px solid #000; margin-top: 10px; padding-top: 10px; }
       
       .print-item-alumno {
@@ -147,14 +164,14 @@
       }
       
       .print-item-acomp {
-        margin-left: 20px; /* Sangría para acompañante */
+        margin-left: 20px;
         font-size: 0.9rem;
         margin-top: 2px;
         font-weight: normal;
         text-transform: capitalize;
       }
       .print-item-acomp::before {
-        content: "- "; /* Guion forzado */
+        content: "- ";
       }
 
       .ticket-total { margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; text-align: right; font-weight: bold; }
@@ -165,6 +182,9 @@
 <body>
 
   <div class="main-card">
+    <!-- BOTÓN DE ACCESO ADMINISTRATIVO -->
+    <button class="btn-admin-access" onclick="accederAdmin()">🔒 Admin</button>
+
     <h1>Registro de Ingreso</h1>
     <p class="subtitle">Sistema de Control</p>
 
@@ -232,10 +252,21 @@
   </div>
 
 <script>
-  const SUPABASE_URL = 'https://mubezmhejafzjjjpexxz.supabase.co/rest/v1/';
-  const SUPABASE_ANON_KEY = 'sb_publishable_sVZJLbF7TPI4cwXpwS20hg_vxbq7KgL';
+  // CONFIGURACIÓN DE SUPABASE
+  const SUPABASE_URL = 'https://mubezmhejafzjjjpexxz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
   const { createClient } = window.supabase;
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // FUNCIÓN PARA SOLICITAR CONTRASEÑA Y ABRIR ADSU.HTML
+  function accederAdmin() {
+    const password = prompt("Ingrese la contraseña de administrador:");
+    if (password === "subau2026") {
+      window.location.href = "adsu.html";
+    } else if (password !== null) {
+      alert("Contraseña incorrecta. Acceso denegado.");
+    }
+  }
 
   // Elementos
   const localSelect = document.getElementById('local-select');
@@ -247,220 +278,4 @@
   let alumnosData = [];
   let sesion = {};
 
-  // 1. Carga Inicial
-  async function cargarLocales() {
-    const { data } = await supabase.from('locales').select('*').order('nombre');
-    localSelect.innerHTML = '<option value="">-- Selecciona --</option>';
-    data?.forEach(l => localSelect.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
-  }
-  cargarLocales();
-
-  localSelect.addEventListener('change', async () => {
-    instSelect.classList.add('hidden');
-    instInput.style.display = 'block';
-    instInput.value = '';
-    if(!localSelect.value) return;
-    
-    const { data } = await supabase.from('instituciones_educativas')
-      .select('*').eq('local_id', localSelect.value).order('nombre');
-    
-    if(data.length > 0){
-      instSelect.classList.remove('hidden');
-      instInput.style.display = 'none';
-      instSelect.innerHTML = '<option value="">-- Selecciona --</option><option value="nueva">+ Nueva...</option>';
-      data.forEach(i => instSelect.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
-    }
-  });
-
-  instSelect.addEventListener('change', () => {
-    instInput.style.display = (instSelect.value === 'nueva') ? 'block' : 'none';
-    if(instSelect.value === 'nueva') instInput.focus();
-  });
-
-  // 2. Navegación
-  document.getElementById('btn-siguiente').addEventListener('click', () => {
-    const cant = parseInt(document.getElementById('numero-alumnos').value);
-    if(!localSelect.value) return alert('Selecciona local');
-    if(cant < 1) return alert('Mínimo 1 alumno');
-    
-    sesion = {
-      localId: localSelect.value,
-      instId: (instSelect.value && instSelect.value !== 'nueva') ? instSelect.value : null,
-      instNombre: instInput.value || instSelect.options[instSelect.selectedIndex].text,
-      cantidad: cant
-    };
-    
-    renderFormulario(cant);
-    document.getElementById('pantalla1').classList.add('hidden');
-    document.getElementById('pantalla2').classList.remove('hidden');
-  });
-
-  document.getElementById('btn-volver').addEventListener('click', () => {
-    document.getElementById('pantalla2').classList.add('hidden');
-    document.getElementById('pantalla1').classList.remove('hidden');
-  });
-
-  // 3. Renderizado con Diseño Jerárquico
-  function renderFormulario(n) {
-    container.innerHTML = '';
-    alumnosData = [];
-    for(let i=0; i<n; i++){
-      alumnosData.push({ nombre: '', apellido: '', acompanantes: [] });
-      
-      const div = document.createElement('div');
-      div.className = 'alumno-card';
-      div.innerHTML = `
-        <div class="alumno-header">Alumno #${i+1} (Principal)</div>
-        <div class="row-grid">
-          <input type="text" placeholder="Nombre Alumno" oninput="updAlumno(${i}, 'nombre', this.value)">
-          <input type="text" placeholder="Apellido Alumno" oninput="updAlumno(${i}, 'apellido', this.value)">
-        </div>
-        
-        <div class="acompanantes-section">
-          <div class="acomp-title">Acompañantes (Dependientes)</div>
-          <div id="list-acomp-${i}"></div>
-          <button class="btn btn-secondary" style="font-size:0.8rem; margin-top:5px;" onclick="addAcomp(${i})">+ Agregar Acompañante</button>
-        </div>
-      `;
-      container.appendChild(div);
-    }
-  }
-
-  window.updAlumno = (i, field, val) => alumnosData[i][field] = val;
-
-  window.addAcomp = (i) => {
-    const idxAcomp = alumnosData[i].acompanantes.length;
-    alumnosData[i].acompanantes.push({ nombre:'', apellido:'' });
-    
-    const row = document.createElement('div');
-    row.className = 'acomp-row';
-    row.innerHTML = `
-      <input type="text" placeholder="Nombre" oninput="updAcomp(${i}, ${idxAcomp}, 'nombre', this.value)">
-      <input type="text" placeholder="Apellido" oninput="updAcomp(${i}, ${idxAcomp}, 'apellido', this.value)">
-      <button class="btn btn-danger" onclick="this.parentElement.remove(); delAcomp(${i}, ${idxAcomp})">X</button>
-    `;
-    document.getElementById(`list-acomp-${i}`).appendChild(row);
-  };
-
-  window.updAcomp = (i, j, field, val) => {
-    if(alumnosData[i].acompanantes[j]) alumnosData[i].acompanantes[j][field] = val;
-  };
-  
-  window.delAcomp = (i, j) => {
-    // Marcamos como null para filtrar al guardar
-    alumnosData[i].acompanantes[j] = null;
-  };
-
-  // 4. Guardado con Validación de Duplicados
-  document.getElementById('btn-guardar').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-guardar');
-    msg.textContent = '';
-    msg.className = '';
-
-    // Validar campos vacíos
-    if(alumnosData.some(a => !a.nombre || !a.apellido)) {
-      msg.textContent = 'Todos los alumnos deben tener nombre y apellido.';
-      msg.className = 'msg-error';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Verificando...';
-
-    try {
-      // A. Resolver ID de Institución
-      let finalInstId = sesion.instId;
-      if(!finalInstId) {
-        // Buscar si existe por nombre
-        const { data: existe } = await supabase.from('instituciones_educativas')
-          .select('id').ilike('nombre', sesion.instNombre.trim()).maybeSingle();
-        
-        if(existe) finalInstId = existe.id;
-        else {
-          const { data: nueva } = await supabase.from('instituciones_educativas')
-            .insert([{ nombre: sesion.instNombre.trim(), local_id: sesion.localId }]).select().single();
-          finalInstId = nueva.id;
-        }
-      }
-
-      // B. VERIFICACIÓN DE DUPLICADOS (Crucial)
-      const { data: duplicado } = await supabase.from('registros_comite')
-        .select('id')
-        .eq('institucion_id', finalInstId)
-        .maybeSingle();
-
-      if (duplicado) {
-        throw new Error('¡ALERTA! Esta institución YA FUE REGISTRADA anteriormente. No se puede volver a ingresar.');
-      }
-
-      // C. Guardar Datos
-      btn.textContent = 'Guardando...';
-      
-      const { data: reg } = await supabase.from('registros_comite')
-        .insert([{ local_id: sesion.localId, institucion_id: finalInstId, numero_alumnos: sesion.cantidad }])
-        .select().single();
-
-      for(const alum of alumnosData) {
-        const { data: alumDb } = await supabase.from('alumnos')
-          .insert([{ nombre: alum.nombre, apellido: alum.apellido, institucion_id: finalInstId }])
-          .select().single();
-          
-        await supabase.from('registro_alumnos').insert([{ registro_comite_id: reg.id, alumno_id: alumDb.id }]);
-
-        const validAcomps = alum.acompanantes.filter(a => a !== null && a.nombre);
-        if(validAcomps.length > 0) {
-          await supabase.from('acompanantes').insert(
-            validAcomps.map(a => ({ nombre: a.nombre, apellido: a.apellido, alumno_id: alumDb.id }))
-          );
-        }
-      }
-
-      // D. Preparar Ticket Jerárquico
-      prepararTicket(finalInstId, reg.id);
-      document.getElementById('pantalla2').classList.add('hidden');
-      document.getElementById('pantalla3').classList.remove('hidden');
-
-    } catch (e) {
-      msg.textContent = e.message;
-      msg.className = 'msg-error';
-      btn.disabled = false;
-      btn.textContent = 'Guardar Registro';
-    }
-  });
-
-  function prepararTicket(instId, regId) {
-    // Datos cabecera
-    document.getElementById('print-fecha').textContent = new Date().toLocaleString();
-    document.getElementById('print-local').textContent = localSelect.options[localSelect.selectedIndex].text;
-    document.getElementById('print-institucion').textContent = sesion.instNombre;
-    document.getElementById('print-id').textContent = '#' + regId;
-
-    // Generar Lista Jerárquica
-    const listaDiv = document.getElementById('print-lista');
-    listaDiv.innerHTML = '';
-    let total = 0;
-
-    alumnosData.forEach(alum => {
-      total++;
-      // 1. Alumno (Padre)
-      const divAlum = document.createElement('div');
-      divAlum.className = 'print-item-alumno';
-      divAlum.textContent = `• ${alum.nombre} ${alum.apellido}`;
-      listaDiv.appendChild(divAlum);
-
-      // 2. Acompañantes (Hijos con guiones)
-      const acomps = alum.acompanantes.filter(a => a!==null && a.nombre);
-      acomps.forEach(ac => {
-        total++;
-        const divAc = document.createElement('div');
-        divAc.className = 'print-item-acomp';
-        divAc.textContent = `${ac.nombre} ${ac.apellido}`; // El CSS agrega el guion "- "
-        listaDiv.appendChild(divAc);
-      });
-    });
-
-    document.getElementById('print-total').textContent = total;
-  }
-</script>
-</body>
-</html>
+  //
