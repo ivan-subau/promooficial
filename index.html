@@ -252,23 +252,23 @@
   </div>
 
 <script>
-  // CONFIGURACIÓN DE SUPABASE
-  const SUPABASE_URL = 'https://mubezmhejafzjjjpexxz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
-  const { createClient } = window.supabase;
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // FUNCIÓN PARA SOLICITAR CONTRASEÑA Y ABRIR ADSU.HTML
-  function accederAdmin() {
+  // DEFINIR LA FUNCIÓN DE ACCESO ADMIN EN EL ÁMBITO GLOBAL DE LA VENTANA
+  window.accederAdmin = function() {
     const password = prompt("Ingrese la contraseña de administrador:");
     if (password === "subau2026") {
       window.location.href = "adsu.html";
     } else if (password !== null) {
       alert("Contraseña incorrecta. Acceso denegado.");
     }
-  }
+  };
 
-  // Elementos
+  // CONFIGURACIÓN DE SUPABASE (URL BASE LIMPIA)
+  const SUPABASE_URL = 'https://mubezmhejafzjjjpexxz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5Z3lhZ3Nta2pndnRtb3hvem5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk3OTMsImV4cCI6MjA3OTA2NTc5M30.ZQ2ihigMNlbR5DtWcaiOxDUYdImkd7Af-xcpjHV8LnY';
+  const { createClient } = window.supabase;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Elementos del DOM
   const localSelect = document.getElementById('local-select');
   const instSelect = document.getElementById('institucion-select');
   const instInput = document.getElementById('institucion-input');
@@ -278,4 +278,209 @@
   let alumnosData = [];
   let sesion = {};
 
-  //
+  // Carga Inicial
+  async function cargarLocales() {
+    const { data } = await supabase.from('locales').select('*').order('nombre');
+    localSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+    data?.forEach(l => localSelect.innerHTML += `<option value="${l.id}">${l.nombre}</option>`);
+  }
+  cargarLocales();
+
+  localSelect.addEventListener('change', async () => {
+    instSelect.classList.add('hidden');
+    instInput.style.display = 'block';
+    instInput.value = '';
+    if(!localSelect.value) return;
+    
+    const { data } = await supabase.from('instituciones_educativas')
+      .select('*').eq('local_id', localSelect.value).order('nombre');
+    
+    if(data.length > 0){
+      instSelect.classList.remove('hidden');
+      instInput.style.display = 'none';
+      instSelect.innerHTML = '<option value="">-- Selecciona --</option><option value="nueva">+ Nueva...</option>';
+      data.forEach(i => instSelect.innerHTML += `<option value="${i.id}">${i.nombre}</option>`);
+    }
+  });
+
+  instSelect.addEventListener('change', () => {
+    instInput.style.display = (instSelect.value === 'nueva') ? 'block' : 'none';
+    if(instSelect.value === 'nueva') instInput.focus();
+  });
+
+  // Navegación
+  document.getElementById('btn-siguiente').addEventListener('click', () => {
+    const cant = parseInt(document.getElementById('numero-alumnos').value);
+    if(!localSelect.value) return alert('Selecciona local');
+    if(cant < 1) return alert('Mínimo 1 alumno');
+    
+    sesion = {
+      localId: localSelect.value,
+      instId: (instSelect.value && instSelect.value !== 'nueva') ? instSelect.value : null,
+      instNombre: instInput.value || instSelect.options[instSelect.selectedIndex].text,
+      cantidad: cant
+    };
+    
+    renderFormulario(cant);
+    document.getElementById('pantalla1').classList.add('hidden');
+    document.getElementById('pantalla2').classList.remove('hidden');
+  });
+
+  document.getElementById('btn-volver').addEventListener('click', () => {
+    document.getElementById('pantalla2').classList.add('hidden');
+    document.getElementById('pantalla1').classList.remove('hidden');
+  });
+
+  // Renderizado
+  function renderFormulario(n) {
+    container.innerHTML = '';
+    alumnosData = [];
+    for(let i=0; i<n; i++){
+      alumnosData.push({ nombre: '', apellido: '', acompanantes: [] });
+      
+      const div = document.createElement('div');
+      div.className = 'alumno-card';
+      div.innerHTML = `
+        <div class="alumno-header">Alumno #${i+1} (Principal)</div>
+        <div class="row-grid">
+          <input type="text" placeholder="Nombre Alumno" oninput="updAlumno(${i}, 'nombre', this.value)">
+          <input type="text" placeholder="Apellido Alumno" oninput="updAlumno(${i}, 'apellido', this.value)">
+        </div>
+        
+        <div class="acompanantes-section">
+          <div class="acomp-title">Acompañantes (Dependientes)</div>
+          <div id="list-acomp-${i}"></div>
+          <button class="btn btn-secondary" style="font-size:0.8rem; margin-top:5px;" onclick="addAcomp(${i})">+ Agregar Acompañante</button>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+  }
+
+  window.updAlumno = (i, field, val) => alumnosData[i][field] = val;
+
+  window.addAcomp = (i) => {
+    const idxAcomp = alumnosData[i].acompanantes.length;
+    alumnosData[i].acompanantes.push({ nombre:'', apellido:'' });
+    
+    const row = document.createElement('div');
+    row.className = 'acomp-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Nombre" oninput="updAcomp(${i}, ${idxAcomp}, 'nombre', this.value)">
+      <input type="text" placeholder="Apellido" oninput="updAcomp(${i}, ${idxAcomp}, 'apellido', this.value)">
+      <button class="btn btn-danger" onclick="this.parentElement.remove(); delAcomp(${i}, ${idxAcomp})">X</button>
+    `;
+    document.getElementById(`list-acomp-${i}`).appendChild(row);
+  };
+
+  window.updAcomp = (i, j, field, val) => {
+    if(alumnosData[i].acompanantes[j]) alumnosData[i].acompanantes[j][field] = val;
+  };
+  
+  window.delAcomp = (i, j) => {
+    alumnosData[i].acompanantes[j] = null;
+  };
+
+  // Guardado
+  document.getElementById('btn-guardar').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-guardar');
+    msg.textContent = '';
+    msg.className = '';
+
+    if(alumnosData.some(a => !a.nombre || !a.apellido)) {
+      msg.textContent = 'Todos los alumnos deben tener nombre y apellido.';
+      msg.className = 'msg-error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    try {
+      let finalInstId = sesion.instId;
+      if(!finalInstId) {
+        const { data: existe } = await supabase.from('instituciones_educativas')
+          .select('id').ilike('nombre', sesion.instNombre.trim()).maybeSingle();
+        
+        if(existe) finalInstId = existe.id;
+        else {
+          const { data: nueva } = await supabase.from('instituciones_educativas')
+            .insert([{ nombre: sesion.instNombre.trim(), local_id: sesion.localId }]).select().single();
+          finalInstId = nueva.id;
+        }
+      }
+
+      const { data: duplicado } = await supabase.from('registros_comite')
+        .select('id')
+        .eq('institucion_id', finalInstId)
+        .maybeSingle();
+
+      if (duplicado) {
+        throw new Error('¡ALERTA! Esta institución YA FUE REGISTRADA anteriormente.');
+      }
+
+      btn.textContent = 'Guardando...';
+      
+      const { data: reg } = await supabase.from('registros_comite')
+        .insert([{ local_id: sesion.localId, institucion_id: finalInstId, numero_alumnos: sesion.cantidad }])
+        .select().single();
+
+      for(const alum of alumnosData) {
+        const { data: alumDb } = await supabase.from('alumnos')
+          .insert([{ nombre: alum.nombre, apellido: alum.apellido, institucion_id: finalInstId }])
+          .select().single();
+          
+        await supabase.from('registro_alumnos').insert([{ registro_comite_id: reg.id, alumno_id: alumDb.id }]);
+
+        const validAcomps = alum.acompanantes.filter(a => a !== null && a.nombre);
+        if(validAcomps.length > 0) {
+          await supabase.from('acompanantes').insert(
+            validAcomps.map(a => ({ nombre: a.nombre, apellido: a.apellido, alumno_id: alumDb.id }))
+          );
+        }
+      }
+
+      prepararTicket(finalInstId, reg.id);
+      document.getElementById('pantalla2').classList.add('hidden');
+      document.getElementById('pantalla3').classList.remove('hidden');
+
+    } catch (e) {
+      msg.textContent = e.message;
+      msg.className = 'msg-error';
+      btn.disabled = false;
+      btn.textContent = 'Guardar Registro';
+    }
+  });
+
+  function prepararTicket(instId, regId) {
+    document.getElementById('print-fecha').textContent = new Date().toLocaleString();
+    document.getElementById('print-local').textContent = localSelect.options[localSelect.selectedIndex].text;
+    document.getElementById('print-institucion').textContent = sesion.instNombre;
+    document.getElementById('print-id').textContent = '#' + regId;
+
+    const listaDiv = document.getElementById('print-lista');
+    listaDiv.innerHTML = '';
+    let total = 0;
+
+    alumnosData.forEach(alum => {
+      total++;
+      const divAlum = document.createElement('div');
+      divAlum.className = 'print-item-alumno';
+      divAlum.textContent = `• ${alum.nombre} ${alum.apellido}`;
+      listaDiv.appendChild(divAlum);
+
+      const acomps = alum.acompanantes.filter(a => a!==null && a.nombre);
+      acomps.forEach(ac => {
+        total++;
+        const divAc = document.createElement('div');
+        divAc.className = 'print-item-acomp';
+        divAc.textContent = `${ac.nombre} ${ac.apellido}`;
+        listaDiv.appendChild(divAc);
+      });
+    });
+
+    document.getElementById('print-total').textContent = total;
+  }
+</script>
+</body>
+</html>
